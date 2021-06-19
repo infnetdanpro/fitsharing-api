@@ -88,12 +88,18 @@ class ClubServiceEndpoint(Resource):
 
 
 
+coordinates_response = {
+    'type': fields.String,
+    'coordinates': fields.List(fields.Float)
+}
+
+
 club_response = {
     'id': fields.Integer,
     'name': fields.String,
     'address': fields.String,
     'phone': fields.String,
-    'gps': fields.String,
+    'gps': fields.Nested(coordinates_response),
     'dist': fields.Float
 }
 
@@ -117,7 +123,8 @@ class ClubsEndpoint(Resource):
             # add gps position of user
             clubs_result = db.session.execute("""
                 WITH subq AS (
-                  SELECT id, name, ST_AsText(point) AS gps, address, phone,
+                -- SELECT id, name, REPLACE(REPLACE(REPLACE(ST_AsText(point), 'POINT(', ''), ')', ''), ' ', ',') AS gps, address, phone,
+                  SELECT id, name, ST_AsGeoJSON(point)::json AS gps, address, phone,
                          ST_DistanceSphere(
                            point,
                            ST_GeomFromEWKT('SRID=4326;POINT(:lng :lat)')
