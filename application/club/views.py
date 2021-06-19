@@ -123,24 +123,35 @@ class ClubsEndpoint(Resource):
             # add gps position of user
             clubs_result = db.session.execute("""
                 WITH subq AS (
-                -- SELECT id, name, REPLACE(REPLACE(REPLACE(ST_AsText(point), 'POINT(', ''), ')', ''), ' ', ',') AS gps, address, phone,
-                  SELECT id, name, ST_AsGeoJSON(point)::json AS gps, address, phone,
-                         ST_DistanceSphere(
-                           point,
-                           ST_GeomFromEWKT('SRID=4326;POINT(:lng :lat)')
-                         ) AS dist
+                  SELECT 
+                    id, 
+                    name, 
+                    ST_AsGeoJSON(point)::json AS gps, 
+                    address, 
+                    phone,
+                    ST_DistanceSphere(point, ST_GeomFromEWKT('SRID=4326;POINT(:lng :lat)')) AS dist
                   FROM club
+                  WHERE club.enabled IS TRUE
                   ORDER BY point <-> ST_GeomFromEWKT('SRID=4326;POINT(:lat :lng)')
                   LIMIT :limit OFFSET :offset
                 ) SELECT * FROM subq ORDER BY dist;
             """, params=args)
             clubs_results = clubs_result.fetchall()
         else:
-            clubs_results = db.session.query(Club)\
-                .filter(Club.enabled == True)\
-                .order_by(desc(Club.id))\
-                .limit(args['limit'])\
-                .offset(args['offset'])\
-                .all()
+            query = """
+                SELECT 
+                    id, 
+                    name, 
+                    ST_AsGeoJSON(point)::json AS gps, 
+                    address, 
+                    phone
+                FROM club
+                WHERE club.enabled IS TRUE
+                ORDER BY id DESC
+                LIMIT :limit
+                OFFSET :offset
+            """
+            clubs_results = db.session.execute(query, args).fetchall()
+
 
         return {'records': clubs_results}, 200
