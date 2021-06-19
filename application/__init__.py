@@ -1,20 +1,18 @@
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
+import datetime
 
-from flask import Flask, jsonify
-from flask_jwt_extended import JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies, \
-    jwt_required
+from flask import Flask
+from flask_jwt_extended import JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies
 from flask_jwt_extended.exceptions import JWTExtendedException
 from flask_restful import Api
-from flask_cors import CORS
+# from flask_cors import CORS
 from jwt import PyJWTError
 
 from application.database import migrate, db
 from application.auth.jwt_auth import authenticate, identity
-from application.user import models
-from application.club import models
-from application.order import models
+from application.user.models import *
+from application.club.models import *
+from application.order.models import *
+from application.content.models import *
 
 
 class FixedApi(Api):
@@ -32,7 +30,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_pyfile('config.py')
 
-    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+    # cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # API
     api = FixedApi(app)
@@ -68,12 +66,16 @@ def create_app():
     from application.order.views import OrderEndpoint
     api.add_resource(OrderEndpoint, '/api/orders')
 
+
+    from application.content.views import PagesEndpoint
+    api.add_resource(PagesEndpoint, '/api/page')
+
     @app.after_request
     def refresh_expiring_jwts(response):
         try:
             exp_timestamp = get_jwt()["exp"]
-            now = datetime.now(timezone.utc)
-            target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+            now = datetime.datetime.now(tz=datetime.timezone.utc)
+            target_timestamp = datetime.datetime.timestamp(now + datetime.timedelta(minutes=30))
             if target_timestamp > exp_timestamp:
                 access_token = create_access_token(identity=get_jwt_identity())
                 set_access_cookies(response, access_token)

@@ -3,9 +3,13 @@ import datetime
 import click
 
 
-@click.command()
+@click.group()
+@click.option('--debug/--no-debug', default=False)
+def cli(debug):
+    click.echo(f"Debug mode is {'on' if debug else 'off'}")
+
+@cli.command()
 def seed_db():
-    # users
     from sqlalchemy import text
 
     from app import create_app
@@ -17,6 +21,7 @@ def seed_db():
     app = create_app()
     db.init_app(app)
 
+    # users
     with app.app_context():
         user_1 = User(
             username='username #1',
@@ -236,5 +241,40 @@ def seed_db():
             print(e)
             db.session.rollback()
 
+
+@cli.command()
+def seed_pages():
+    from application import create_app
+    from application.database import db
+    from application.content.models import PublicPage
+
+    app = create_app()
+    db.init_app(app)
+
+    # users
+    with app.app_context():
+        privacy_page = PublicPage(
+            slug='privacy',
+            title='Политика конфиденциальности',
+            h1='h1 политика',
+            meta_description='Политика конфиденциальности',
+            body='Большой текст с политикой',
+        )
+        rules_page = PublicPage(
+            slug='rules',
+            title='Правила пользования сервисом',
+            h1='h1 правила',
+            meta_description='Правила пользования сервисом',
+            body='Большой текст с правилами',
+        )
+        try:
+            db.session.add(privacy_page)
+            db.session.add(rules_page)
+            db.session.commit()
+        except Exception as e:
+            print('ERROR ADD PUBLIC PAGES')
+            print(e)
+            db.session.rollback()
+
 if __name__ == '__main__':
-    seed_db()
+    cli()
