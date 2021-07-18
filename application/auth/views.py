@@ -4,8 +4,8 @@ from flask_jwt_extended import (
     set_access_cookies,
     unset_jwt_cookies,
     jwt_required,
-    get_jwt_identity
-)
+    get_jwt_identity,
+    create_refresh_token)
 from flask_restful import Resource, reqparse, abort
 
 from application.funcs.password import verify_password
@@ -28,10 +28,18 @@ class LoginEndpoint(Resource):
             abort(401, message='Email or password is not correct!')
 
         access_token = create_access_token(identity=email)
-        response = jsonify({'access_token': access_token})
+        refresh_token = create_refresh_token(identity=email)
+        response = jsonify({'access_token': access_token, 'refresh_token': refresh_token})
         set_access_cookies(response, access_token)
 
         return response
+
+    @jwt_required()
+    def get(self):
+        """Check auth logic, just check and return"""
+        # /api/login/ will return True for authenticated user and 401
+        return True
+
 
 
 class LogoutEndpoint(Resource):
@@ -46,4 +54,9 @@ class RefreshTokenEndpoint(Resource):
     def post(self):
         identity = get_jwt_identity()
         access_token = create_access_token(identity=identity)
-        return jsonify(access_token=access_token)
+
+        response = jsonify(access_token=access_token)
+
+        # Also save new access token into cookie for future work with cookie-based session
+        set_access_cookies(response, access_token)
+        return response

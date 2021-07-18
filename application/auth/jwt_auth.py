@@ -4,7 +4,7 @@ from application.funcs.password import verify_password
 
 
 def authenticate(email, password):
-    user = db.session.query(User).filter(User.email == email, User.enabled == 1).first()
+    user = db.session.query(User).filter(User.email == email, User.enabled == 1).one()
 
     if not verify_password(user.password, password):
         return

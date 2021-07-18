@@ -16,13 +16,13 @@ from application.content.models import *
 
 
 class FixedApi(Api):
-  def error_router(self, original_handler, e):
-    if not isinstance(e, PyJWTError) and not isinstance(e, JWTExtendedException) and self._has_fr_route():
-      try:
-        return self.handle_error(e)
-      except Exception:
-        pass  # Fall through to original handler
-    return original_handler(e)
+    def error_router(self, original_handler, e):
+        if not isinstance(e, PyJWTError) and not isinstance(e, JWTExtendedException) and self._has_fr_route():
+            try:
+                return self.handle_error(e)
+            except Exception:
+                pass  # Fall through to original handler
+        return original_handler(e)
 
 
 def create_app():
@@ -72,6 +72,7 @@ def create_app():
 
     @app.after_request
     def refresh_expiring_jwts(response):
+
         try:
             exp_timestamp = get_jwt()["exp"]
             now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -81,7 +82,7 @@ def create_app():
                 set_access_cookies(response, access_token)
             return response
         except (RuntimeError, KeyError):
-            # Case where there is not a valid JWT. Just return the original respone
+            # Case where there is not a valid JWT. Just return the original response
             return response
 
     return app

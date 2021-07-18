@@ -17,4 +17,5 @@ JWT_EXPIRATION_DELTA = os.environ.get('JWT_EXPIRATION_DELTA')
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
 
 JWT_COOKIE_SECURE = os.environ.get('JWT_COOKIE_SECURE', False)
-JWT_TOKEN_LOCATION = os.environ.get('JWT_TOKEN_LOCATION', 'cookies')
+JWT_TOKEN_LOCATION = os.environ.get('JWT_TOKEN_LOCATION', ["headers", "cookies"])
+JWT_REFRESH_TOKEN_EXPIRES = os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', 86400)
