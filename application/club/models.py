@@ -1,4 +1,5 @@
 import datetime
+import enum
 
 from sqlalchemy import text
 from sqlalchemy.orm import relationship
@@ -28,6 +29,23 @@ class ClubGallery(db.Model):
     sequence = db.Column(db.Integer, default=0)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
+
+
+class Days(enum.Enum):
+    monday = 'monday'
+    tuesday = 'tuesday'
+    wednesday = 'wednesday'
+    thursday = 'thursday'
+    friday = 'friday'
+    saturday = 'saturday'
+    sunday = 'sunday'
+
+class ClubWorkSchedule(db.Model):
+    __tablename__ = 'club_work_schedules'
+    id = db.Column(db.Integer, primary_key=True)
+    day = db.Column(db.Enum(Days), nullable=False)
+    work_hours = db.Column(db.String, nullable=False)
+    club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
 
 
 class Service(db.Model):

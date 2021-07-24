@@ -1,8 +1,8 @@
+import textwrap
 from typing import List
 
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
-from sqlalchemy import desc
 
 from application.database import db
 from application.club.models import Club, ClubService
@@ -31,7 +31,8 @@ single_club_response = {
     'lat': fields.Float,
     'lng': fields.Float,
     'about': fields.String,
-    'images': fields.List(fields.Nested(images_club_response))
+    'images': fields.List(fields.Nested(images_club_response)),
+    'open': fields.Boolean(default=False),
 }
 
 
@@ -55,6 +56,9 @@ class ClubEndpoint(Resource):
 
         if not club:
             abort(404, message='Club not found or disabled')
+
+        club.name = textwrap.shorten(club.name, width=60, placeholder="...")
+        club.address = textwrap.shorten(club.address, width=60, placeholder="...")
 
         return club
 
