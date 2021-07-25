@@ -1,5 +1,5 @@
-venv
-venv/
+venv_
+venv_/
 __pycache__
 __pycache__/
 *.sqlite
