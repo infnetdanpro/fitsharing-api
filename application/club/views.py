@@ -1,12 +1,12 @@
 import textwrap
+from datetime import datetime, timezone, timedelta
 from typing import List
 
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
 
 from application.database import db
-from application.club.models import Club, ClubService
-
+from application.club.models import Club, ClubService, days_order
 
 images_club_response = {
     'name': fields.String,
@@ -22,6 +22,12 @@ service_fields = {
     'about': fields.String
 }
 
+work_hours_fields = {
+    'id': fields.Integer,
+    'day': fields.String,
+    'work_hours': fields.String
+}
+
 
 single_club_response = {
     'id': fields.Integer,
@@ -32,6 +38,7 @@ single_club_response = {
     'lng': fields.Float,
     'about': fields.String,
     'images': fields.List(fields.Nested(images_club_response)),
+    'work_hours': fields.List(fields.Nested(work_hours_fields)),
     'open': fields.Boolean(default=False),
 }
 
@@ -49,8 +56,8 @@ class ClubEndpoint(Resource):
     @marshal_with(single_club_response)
     @jwt_required()
     def get(self):
-        args = self.get_parser.parse_args()
-        club = db.session.query(Club)\
+        args: dict = self.get_parser.parse_args()
+        club: Club = db.session.query(Club)\
             .filter(Club.enabled == True, Club.id == args['id'])\
             .first()
 
@@ -60,6 +67,35 @@ class ClubEndpoint(Resource):
         club.name = textwrap.shorten(club.name, width=60, placeholder="...")
         club.address = textwrap.shorten(club.address, width=60, placeholder="...")
 
+        work_hours_indexes_order = {}
+        for work_hour in club.work_hours:
+            work_hours_indexes_order[days_order.index(work_hour.day)] = work_hour
+
+        index_order = sorted(work_hours_indexes_order, key=lambda x: x)
+
+        work_hours = []
+        for index in index_order:
+            work_hours.append(work_hours_indexes_order[index])
+
+        club.work_hours = work_hours
+
+        current_datetime = datetime.utcnow() + timedelta(seconds=180*60)    # Moscow +3 hours
+
+        day = work_hours[current_datetime.weekday()]
+        if not day:
+            # current day not in work schedule
+            setattr(club, 'open', False)
+            return club
+
+        open_time, close_time = day.work_hours.split('-')
+        open_hour, open_minute = open_time.split(':')
+        close_hour, close_minute = close_time.split(':')
+
+        start_time = current_datetime.replace(hour=int(open_hour), minute=int(open_minute), second=0, microsecond=0)
+        end_time = current_datetime.replace(hour=int(close_hour), minute=int(close_minute), second=0, microsecond=0)
+
+        current_datetime = datetime.utcnow() + timedelta(seconds=180*60) # Moscow +3 hours
+        setattr(club, 'open', start_time <= current_datetime <= end_time)
         return club
 
 

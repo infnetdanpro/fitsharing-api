@@ -15,7 +15,7 @@ def seed_db():
     from app import create_app
     from application.database import db
     from application.user.models import User
-    from application.club.models import Club, ClubGallery, Service, ClubService
+    from application.club.models import Club, ClubGallery, Service, ClubService, ClubWorkSchedule
     from application.funcs.password import hash_password
 
     app = create_app()
@@ -58,8 +58,8 @@ def seed_db():
             name='X-FIT Алтуфьево',
             address='г. Москва, ул. Угличская, д. 13, корп. 1, Лианозовский парк',
             phone='+7 (499) 682 72 66',
-            lat=float(0.0),
-            lng=float(0.0),
+            lng=float(37.566072),
+            lat=float(55.901753),
             about='Клуб в Алтуфьево в Москве',
             point=text("ST_GeomFromEWKT('SRID=4326;POINT(37.566072 55.901753)')"),
         )
@@ -68,18 +68,18 @@ def seed_db():
             name='X-FIT Столешников',
             address='г. Москва, ул. Большая Дмитровка, д. 13',
             phone='+7 (495) 966 14 80',
-            lat=float(0.0),
-            lng=float(0.0),
+            lng=float(37.613323),
+            lat=float(55.762348),
             about='Клуб в Столешникове в Москве',
-            point=text("ST_GeomFromEWKT('SRID=4326;POINT(37.613323 55.762348)')"),
+            point=text("ST_GeomFromEWKT('SRID=4326;POINT(37.613323 55.762348)')"),      # SRID 4326 - longitude and latitude
         )
 
         club_3 = Club(
             name='X-FIT ПАРК ПОБЕДЫ',
             address='г. Москва, ул. Василисы Кожиной, д. 1',
             phone='+7 (495) 780-84-64',
-            lat=float(0.0),
-            lng=float(0.0),
+            lng=float(37.505166),
+            lat=float(55.737527),
             about='Клуб у метро Парк Победы в Москве',
             point=text("ST_GeomFromEWKT('SRID=4326;POINT(37.505166 55.737527)')"),
         )
@@ -240,7 +240,52 @@ def seed_db():
             print('ERROR ADD SERVICES')
             print(e)
             db.session.rollback()
+        #
+        # monday = 'monday'
+        # tuesday = 'tuesday'
+        # wednesday = 'wednesday'
+        # thursday = 'thursday'
+        # friday = 'friday'
+        # saturday = 'saturday'
+        # sunday = 'sunday'
 
+        hours_club_1_1 = ClubWorkSchedule(day='monday', work_hours='09:00-22:00', club_id=club_1.id)
+        hours_club_1_2 = ClubWorkSchedule(day='tuesday', work_hours='09:00-22:00', club_id=club_1.id)
+        hours_club_1_3 = ClubWorkSchedule(day='wednesday', work_hours='09:00-22:00', club_id=club_1.id)
+        hours_club_1_4 = ClubWorkSchedule(day='thursday', work_hours='09:00-22:00', club_id=club_1.id)
+        hours_club_1_5 = ClubWorkSchedule(day='friday', work_hours='09:00-22:00', club_id=club_1.id)
+        hours_club_1_6 = ClubWorkSchedule(day='saturday', work_hours='09:00-21:00', club_id=club_1.id)
+        hours_club_1_7 = ClubWorkSchedule(day='sunday', work_hours='09:00-21:00', club_id=club_1.id)
+
+        hours_club_2_1 = ClubWorkSchedule(day='monday', work_hours='09:30-22:00', club_id=club_2.id)
+        hours_club_2_2 = ClubWorkSchedule(day='tuesday', work_hours='09:30-22:00', club_id=club_2.id)
+        hours_club_2_3 = ClubWorkSchedule(day='wednesday', work_hours='09:30-22:00', club_id=club_2.id)
+        hours_club_2_4 = ClubWorkSchedule(day='thursday', work_hours='09:30-22:00', club_id=club_2.id)
+        hours_club_2_5 = ClubWorkSchedule(day='friday', work_hours='09:30-22:00', club_id=club_2.id)
+        hours_club_2_6 = ClubWorkSchedule(day='saturday', work_hours='09:30-22:00', club_id=club_2.id)
+        hours_club_2_7 = ClubWorkSchedule(day='sunday', work_hours='09:30-22:00', club_id=club_2.id)
+
+        hours_club_3_1 = ClubWorkSchedule(day='monday', work_hours='08:30-22:30', club_id=club_3.id)
+        hours_club_3_2 = ClubWorkSchedule(day='tuesday', work_hours='08:30-22:30', club_id=club_3.id)
+        hours_club_3_3 = ClubWorkSchedule(day='wednesday', work_hours='08:30-22:30', club_id=club_3.id)
+        hours_club_3_4 = ClubWorkSchedule(day='thursday', work_hours='08:30-22:30', club_id=club_3.id)
+        hours_club_3_5 = ClubWorkSchedule(day='friday', work_hours='08:30-22:30', club_id=club_3.id)
+        hours_club_3_6 = ClubWorkSchedule(day='saturday', work_hours='08:30-22:30', club_id=club_3.id)
+        hours_club_3_7 = ClubWorkSchedule(day='sunday', work_hours='08:30-22:30', club_id=club_3.id)
+
+        work_hours_models = [
+            hours_club_1_1, hours_club_1_2, hours_club_1_3, hours_club_1_4, hours_club_1_5, hours_club_1_6, hours_club_1_7,
+            hours_club_2_1, hours_club_2_2, hours_club_2_3, hours_club_2_4, hours_club_2_5, hours_club_2_6, hours_club_2_7,
+            hours_club_3_1, hours_club_3_2, hours_club_3_3, hours_club_3_4, hours_club_3_5, hours_club_3_6, hours_club_3_7,
+        ]
+        try:
+            for work_hours in work_hours_models:
+                db.session.add(work_hours)
+            db.session.commit()
+        except Exception as e:
+            print('ERROR ADD WORK HOURS!')
+            print(e)
+            db.session.rollback()
 
 @cli.command()
 def seed_pages():
@@ -275,6 +320,30 @@ def seed_pages():
             print('ERROR ADD PUBLIC PAGES')
             print(e)
             db.session.rollback()
+
+@cli.command()
+def clear_tables():
+    from application import create_app
+    from application.database import db
+
+    app = create_app()
+    db.init_app(app)
+
+    # users
+    with app.app_context():
+        db.session.execute(""" 
+            TRUNCATE TABLE public.club RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.club_gallery RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.club_gallery RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.club_work_schedules RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.service RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.club_service RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.page RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.order RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.order_service RESTART IDENTITY CASCADE;
+            TRUNCATE TABLE public.user RESTART IDENTITY CASCADE;
+        """)
+        db.session.commit()
 
 if __name__ == '__main__':
     cli()

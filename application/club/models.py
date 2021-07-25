@@ -13,12 +13,13 @@ class Club(db.Model):
     name = db.Column(db.String, unique=False, nullable=False)
     address = db.Column(db.String, unique=False, nullable=False)
     phone = db.Column(db.String, unique=False, nullable=False)
-    lat = db.Column(db.Float, unique=False, nullable=False, server_default='0.0')
-    lng = db.Column(db.Float, unique=False, nullable=False, server_default='0.0')
+    lat = db.Column(db.Float, unique=False, nullable=False, server_default='0.0')   # широта
+    lng = db.Column(db.Float, unique=False, nullable=False, server_default='0.0')   # долгота
     about = db.Column(db.String(1024), unique=False, nullable=True)
     enabled = db.Column(db.Boolean, unique=False, nullable=True, default=True, server_default='true')
-    point = db.Column(Geometry('point'))
+    point = db.Column(Geometry('point'))    # SRID 4326 - longitude and latitude
     images = relationship('ClubGallery')
+    work_hours = relationship('ClubWorkSchedule')
 
 
 class ClubGallery(db.Model):
@@ -31,7 +32,28 @@ class ClubGallery(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
 
 
-class Days(enum.Enum):
+class StrEnum(str, enum.Enum):
+    def __new__(cls, *args):
+        for arg in args:
+            if not isinstance(arg, (str, enum.auto)):
+                raise TypeError(
+                    "Values of StrEnums must be strings: {} is a {}".format(
+                        repr(arg), type(arg)
+                    )
+                )
+        return super().__new__(cls, *args)
+
+    def __str__(self):
+        return self.value
+
+    # The first argument to this function is documented to be the name of the
+    # enum member, not `self`:
+    # https://docs.python.org/3.6/library/enum.html#using-automatic-values
+    def _generate_next_value_(name, *_):
+        return name
+
+
+class Days(StrEnum):
     monday = 'monday'
     tuesday = 'tuesday'
     wednesday = 'wednesday'
@@ -40,6 +62,8 @@ class Days(enum.Enum):
     saturday = 'saturday'
     sunday = 'sunday'
 
+days_order = ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
+
 class ClubWorkSchedule(db.Model):
     __tablename__ = 'club_work_schedules'
     id = db.Column(db.Integer, primary_key=True)
@@ -47,6 +71,11 @@ class ClubWorkSchedule(db.Model):
     work_hours = db.Column(db.String, nullable=False)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
 
+    def __str__(self):
+        return str(self.day.value)
+
+    def __repr__(self):
+        return str(self.day.value)
 
 class Service(db.Model):
     __tablename__ = 'service'
