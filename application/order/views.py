@@ -83,7 +83,7 @@ class OrderEndpoint(Resource):
                 abort(400, message='Club services ids must be all integers ([1, 2])')
 
         user_id = args.get('user_id') or current_user.id
-        club_services: List[ClubService] = db.session\
+        club_services = db.session\
             .query(ClubService)\
             .filter(ClubService.id.in_(club_service_ids), ClubService.enabled == 1)
         
@@ -93,7 +93,6 @@ class OrderEndpoint(Resource):
         price = 0
         for club_service in club_services.all():
             price += club_service.price
-
 
         try:
             new_order = Order(

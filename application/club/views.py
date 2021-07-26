@@ -1,5 +1,5 @@
 import textwrap
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from typing import List
 
 from flask_jwt_extended import jwt_required
@@ -67,6 +67,7 @@ class ClubEndpoint(Resource):
         club.name = textwrap.shorten(club.name, width=60, placeholder="...")
         club.address = textwrap.shorten(club.address, width=60, placeholder="...")
 
+        # Sort work days
         work_hours_indexes_order = {}
         for work_hour in club.work_hours:
             work_hours_indexes_order[days_order.index(work_hour.day)] = work_hour
@@ -79,12 +80,13 @@ class ClubEndpoint(Resource):
 
         club.work_hours = work_hours
 
+        # Detect open/not open status by week/work hours
         current_datetime = datetime.utcnow() + timedelta(seconds=180*60)    # Moscow +3 hours
 
-        day = work_hours[current_datetime.weekday()]
-        if not day:
-            # current day not in work schedule
-            setattr(club, 'open', False)
+        try:
+            day = work_hours[current_datetime.weekday()]
+        except IndexError:
+            # If current week day not exists in work schedule
             return club
 
         open_time, close_time = day.work_hours.split('-')
