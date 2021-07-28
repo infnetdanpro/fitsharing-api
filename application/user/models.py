@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from sqlalchemy import text
+
 from application.database import db
 
 
@@ -17,3 +21,12 @@ class User(db.Model):
 
     def __repr__(self):
         return f'<User {self.username}. ID: {self.id}>'
+
+
+class ForgotPassword(db.Model):
+    __tablename__ = 'forgot_password'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    reset_code = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))

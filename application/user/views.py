@@ -1,5 +1,9 @@
+from functools import lru_cache
+
+from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
+from email_validator import validate_email, EmailNotValidError
 
 from application.database import db
 from application.user.models import User
@@ -26,6 +30,15 @@ success_delete_response = {
     'id': fields.Integer,
     'enabled': fields.Boolean
 }
+
+@lru_cache()
+def email_validator_cached(email):
+    try:
+        valid = validate_email(email)
+
+        return valid.email
+    except EmailNotValidError as e:
+        abort(400, message='Bad email')
 
 
 class UserEndpoint(Resource):
@@ -73,13 +86,18 @@ class UserEndpoint(Resource):
         if 256 > len(user.password) < 8:
             abort(400, message='Password field is too short (8, 256)')
 
+        user.email = email_validator_cached(user.email)
         user.password = hash_password(user.password)
 
         try:
             db.session.add(user)
             db.session.commit()
+        except IntegrityError:
+            abort(409, message='User already exists with this email/username')
+            db.session.rollback()
         except Exception as e:
-            abort(409, message='User already exists')
+            print(e)
+            abort(400, message='Something wrong with register new user. Please, try again later')
             db.session.rollback()
 
         return user

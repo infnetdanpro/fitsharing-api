@@ -52,6 +52,7 @@ def create_app():
     from application.auth.views import LoginEndpoint, LogoutEndpoint, RefreshTokenEndpoint
     api.add_resource(LoginEndpoint, '/api/login')
     api.add_resource(LogoutEndpoint, '/api/logout')
+    # api.add_resource(LogoutEndpoint, '/api/forgot-password')
     api.add_resource(RefreshTokenEndpoint, '/api/refresh')
 
     from application.user.views import UserEndpoint
