@@ -42,16 +42,16 @@ def get_unique_confirmation_code():
 
 # For single order
 class OrderEndpoint(Resource):
-    get_args = reqparse.RequestParser()
+    get_args: dict = reqparse.RequestParser()
     get_args.add_argument('order_id', type=int, required=True)
 
-    post_args = reqparse.RequestParser()
+    post_args: dict = reqparse.RequestParser()
     post_args.add_argument('user_id', type=int, required=False)
     post_args.add_argument('club_id', type=int, required=True)
     post_args.add_argument('comment', type=str, required=False)
     post_args.add_argument('club_service_ids', type=int, action='append')
 
-    delete_args = reqparse.RequestParser()
+    delete_args: dict = reqparse.RequestParser()
     delete_args.add_argument('order_id', type=int, required=True)
     delete_args.add_argument('user_id', type=int, required=False)
 
@@ -59,7 +59,7 @@ class OrderEndpoint(Resource):
     @jwt_required()
     def get(self):
         # get info about order
-        args = self.get_args.parse_args()
+        args: dict = self.get_args.parse_args()
         current_user = get_jwt_identity()
         order = db.session.query(Order).filter(Order.id == args['order_id']).first()
         
@@ -74,7 +74,7 @@ class OrderEndpoint(Resource):
     @jwt_required()
     def post(self):
         # create order
-        args = self.post_args.parse_args()
+        args: dict = self.post_args.parse_args()
         current_user = get_jwt_identity()
 
         club_service_ids: List[int] = args.get('club_service_ids')
@@ -125,7 +125,7 @@ class OrderEndpoint(Resource):
 
     def delete(self):
         # cancel order
-        args = self.delete_args.parse_args()
+        args: dict = self.delete_args.parse_args()
         order_id = args['order_id']
         current_user = get_jwt_identity()
         user_id = current_user.id or args.get('user_id')

@@ -23,7 +23,7 @@ class PagesEndpoint(Resource):
 
     @marshal_with(page_response)
     def get(self):
-        args = self.get_parser.parse_args()
+        args: dict = self.get_parser.parse_args()
         id, slug = args['id'], args['slug']
 
         if not any([id, slug]):

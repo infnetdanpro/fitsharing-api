@@ -8,9 +8,50 @@ from flask_jwt_extended import (
     create_refresh_token)
 from flask_restful import Resource, reqparse, abort
 
+from application.email.sender import send_email
+from application.funcs.confirmation_code import generate_code
 from application.funcs.password import verify_password
 from application.database import db
-from application.user.models import User
+from application.user.models import User, ForgotPassword
+
+
+class ForgotPasswordEndpoint(Resource):
+    forgot_password = reqparse.RequestParser()
+    forgot_password.add_argument('email', type=str, required=True)
+
+    def put(self):
+        # Request change password code
+        args: dict = self.forgot_password.parse_args()
+        email = args['email']
+
+        user_from_db: User = db.session.query(User)\
+            .filter(User.email == email, User.enabled == True)\
+            .first()
+        reset_code = generate_code(6)
+
+        if not user_from_db:
+            return
+
+        forgot_password = ForgotPassword(
+            user_id=user_from_db.id,
+            reset_code=reset_code
+        )
+        try:
+            db.session.add(forgot_password)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return
+
+        send_email(
+            to_email=user_from_db.email,
+            template_name='reset_code',
+            context=dict(reset_code=reset_code)
+        )
+
+    def post(self):
+        # Perform code
+        pass
 
 
 class LoginEndpoint(Resource):
@@ -19,7 +60,7 @@ class LoginEndpoint(Resource):
     login_parser.add_argument('password', type=str, required=True)
 
     def post(self):
-        args = self.login_parser.parse_args()
+        args: dict = self.login_parser.parse_args()
         email, password = args['email'], args['password']
 
         user_db: User = db.session.query(User).filter(User.email == email, User.enabled == True).first()

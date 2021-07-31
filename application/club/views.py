@@ -107,7 +107,7 @@ class ClubServiceEndpoint(Resource):
 
     @jwt_required()
     def get(self):
-        args = self.get_parser.parse_args()
+        args: dict = self.get_parser.parse_args()
         club_services: List[ClubService] = db.session.query(ClubService)\
             .filter(ClubService.club_id == args['club_id'])\
             .all()
@@ -159,7 +159,7 @@ class ClubsEndpoint(Resource):
     @marshal_with(list_clubs_response)
     @jwt_required()
     def get(self):
-        args = self.get_parser.parse_args()
+        args: dict = self.get_parser.parse_args()
 
         if args['lng'] and args['lat']:
             # add gps position of user

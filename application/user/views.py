@@ -67,7 +67,7 @@ class UserEndpoint(Resource):
     @marshal_with(full_user_response)
     @jwt_required()
     def get(self):
-        args = self.get_parser.parse_args()
+        args: dict = self.get_parser.parse_args()
         current_user = get_jwt_identity()
 
         if current_user.id != args['id']:
@@ -105,7 +105,7 @@ class UserEndpoint(Resource):
     @marshal_with(full_user_response)
     @jwt_required()
     def put(self):
-        args = self.put_parser.parse_args()
+        args: dict = self.put_parser.parse_args()
         current_user = get_jwt_identity()
 
         if current_user.id != args['id']:
@@ -127,7 +127,7 @@ class UserEndpoint(Resource):
     @marshal_with(success_delete_response)
     @jwt_required()
     def delete(self):
-        args = self.delete_parser.parse_args()
+        args: dict = self.delete_parser.parse_args()
         current_user = get_jwt_identity()
 
         if current_user.id != args['id']:
