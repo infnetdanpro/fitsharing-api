@@ -1,25 +1,32 @@
 from flask import jsonify
+from flask_apispec import marshal_with, MethodResource, use_kwargs, doc
 from flask_jwt_extended import (
     create_access_token,
     set_access_cookies,
     unset_jwt_cookies,
     jwt_required,
     get_jwt_identity,
-    create_refresh_token)
+    create_refresh_token
+)
 from flask_restful import Resource, reqparse, abort
 
+from application.auth.docs import LoginPostEndpointResponse, LoginPostEndpointRequest, LogoutGetResponse, \
+    ForgotPasswordPutResponse, ForgotPasswordPutRequest, ForgotPasswordPostRequest, ForgotPasswordPostResponse
 from application.email.sender import send_email
 from application.funcs.confirmation_code import generate_code
-from application.funcs.password import verify_password
+from application.funcs.password import verify_password, hash_password
 from application.database import db
 from application.user.models import User, ForgotPassword
 
 
-class ForgotPasswordEndpoint(Resource):
+class ForgotPasswordEndpoint(MethodResource, Resource):
     forgot_password = reqparse.RequestParser()
     forgot_password.add_argument('email', type=str, required=True)
 
-    def put(self):
+    @doc(description='Request reset code for change password', tags=['Auth'])
+    @use_kwargs(ForgotPasswordPutRequest)
+    @marshal_with(ForgotPasswordPutResponse)
+    def put(self, *args, **kwargs):
         # Request change password code
         args: dict = self.forgot_password.parse_args()
         email = args['email']
@@ -27,10 +34,10 @@ class ForgotPasswordEndpoint(Resource):
         user_from_db: User = db.session.query(User)\
             .filter(User.email == email, User.enabled == True)\
             .first()
-        reset_code = generate_code(6)
+        reset_code = generate_code(6, case='letters+numbers').upper()
 
         if not user_from_db:
-            return
+            return {'email_send': 0}
 
         forgot_password = ForgotPassword(
             user_id=user_from_db.id,
@@ -41,25 +48,65 @@ class ForgotPasswordEndpoint(Resource):
             db.session.commit()
         except Exception:
             db.session.rollback()
-            return
+            return {'email_send': 1}
 
-        send_email(
+        resp_status_code = send_email(
             to_email=user_from_db.email,
-            template_name='reset_code',
-            context=dict(reset_code=reset_code)
+            content=f'Reset code: {reset_code}'
         )
 
-    def post(self):
+        return {'email_send': resp_status_code}
+
+    @doc(description='Perform reset code to change password', tags=['Auth'])
+    @use_kwargs(ForgotPasswordPostRequest)
+    @marshal_with(ForgotPasswordPostResponse)
+    def post(self, *args, **kwargs):
         # Perform code
-        pass
+
+        # check code exists
+        forgot_password_model = db.session.query(ForgotPassword)\
+            .filter(ForgotPassword.reset_code == kwargs.get('reset_code'))\
+            .first()
+
+        if not forgot_password_model:
+            abort(404, message='Reset code expired or not found')
+
+        # Get active user
+        user = db.session.query(User)\
+            .filter(
+                User.id == forgot_password_model.user_id,
+                User.enabled.is_(True))\
+            .first()
+
+        if not user:
+            abort(403, message='User blocked')
+
+        if 256 > len(kwargs.get('new_password')) < 8:
+            abort(400, message='Password field is too short (8, 256)')
+
+        try:
+            user.password = hash_password(kwargs.get('new_password'))
+            db.session.commit()
+
+            db.session.delete(forgot_password_model)
+            db.session.commit()
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            abort(500, message='Problem with update password')
+
+        return {'password_changed': True}
 
 
-class LoginEndpoint(Resource):
+class LoginEndpoint(MethodResource, Resource):
     login_parser = reqparse.RequestParser()
     login_parser.add_argument('email', type=str, required=True)
     login_parser.add_argument('password', type=str, required=True)
 
-    def post(self):
+    @doc(description='Login endpoint by email/password', tags=['Auth'])
+    @use_kwargs(LoginPostEndpointRequest, location='json')
+    @marshal_with(LoginPostEndpointResponse)
+    def post(self, *args, **kwargs):
         args: dict = self.login_parser.parse_args()
         email, password = args['email'], args['password']
 
@@ -75,6 +122,7 @@ class LoginEndpoint(Resource):
 
         return response
 
+    @doc(description='Check authorization', tags=['Auth'])
     @jwt_required()
     def get(self):
         """Check auth logic, just check and return"""
@@ -82,8 +130,9 @@ class LoginEndpoint(Resource):
         return True
 
 
-
-class LogoutEndpoint(Resource):
+class LogoutEndpoint(MethodResource, Resource):
+    @doc(description='Logout endpoint for clear cookies', tags=['Auth'])
+    @marshal_with(LogoutGetResponse)
     def get(self):
         response = jsonify({"msg": "logout successful"})
         unset_jwt_cookies(response)

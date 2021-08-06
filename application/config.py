@@ -20,6 +20,6 @@ JWT_COOKIE_SECURE = os.environ.get('JWT_COOKIE_SECURE', False)
 JWT_TOKEN_LOCATION = os.environ.get('JWT_TOKEN_LOCATION', ["headers", "cookies"])
 JWT_REFRESH_TOKEN_EXPIRES = os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', 86400)
 
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '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')
-SENDGRID_FROM_NAME = os.environ.get('SENDGRID_FROM_NAME', 'Support')
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+SENDGRID_SUBJECT = os.environ.get('SENDGRID_FROM_NAME', 'FitSharing Support')
 SENDGRID_FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'dan-pro352@ya.ru')

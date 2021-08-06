@@ -1,22 +1,14 @@
 from application import config
-from application.email.email import Email
-from application.email.template import Template
+from application.email.email import EmailClient
 
 
-def send_email(to_email: str, template_name: str, context: dict = None) -> bool:
-    if not context:
-        context = {}
-
-    template = Template(name=template_name, context=context)
-    content: str = template.render()
-
-    email = Email(
+def send_email(to_email: str, content: str = None) -> bool:
+    """Function for send email via custom client"""
+    email = EmailClient(
+        subject=config.SENDGRID_SUBJECT,
         from_email=config.SENDGRID_FROM_EMAIL,
         to_email=to_email,
-        sender_name=config.SENDGRID_FROM_NAME,
         email_body=content
     )
-
     response = email.send()
-
-    return response.status_code == 200
+    return response.status_code == 202

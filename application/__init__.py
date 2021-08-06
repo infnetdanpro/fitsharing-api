@@ -1,6 +1,9 @@
 import datetime
 
+from apispec import APISpec
+from apispec.ext.marshmallow import MarshmallowPlugin
 from flask import Flask
+from flask_apispec import FlaskApiSpec
 from flask_jwt_extended import JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies
 from flask_jwt_extended.exceptions import JWTExtendedException
 from flask_restful import Api
@@ -49,10 +52,10 @@ def create_app():
             migrate.init_app(app, db)
     
     # ROUTES
-    from application.auth.views import LoginEndpoint, LogoutEndpoint, RefreshTokenEndpoint
+    from application.auth.views import LoginEndpoint, LogoutEndpoint, RefreshTokenEndpoint, ForgotPasswordEndpoint
     api.add_resource(LoginEndpoint, '/api/login')
     api.add_resource(LogoutEndpoint, '/api/logout')
-    # api.add_resource(LogoutEndpoint, '/api/forgot-password')
+    api.add_resource(ForgotPasswordEndpoint, '/api/forgot-password')
     api.add_resource(RefreshTokenEndpoint, '/api/refresh')
 
     from application.user.views import UserEndpoint
@@ -85,5 +88,22 @@ def create_app():
         except (RuntimeError, KeyError):
             # Case where there is not a valid JWT. Just return the original response
             return response
+
+    # Docs:
+    app.config.update({
+        'APISPEC_SPEC': APISpec(
+            title='FitSharing API DOCS',
+            version='v1',
+            plugins=[MarshmallowPlugin()],
+            openapi_version='2.0.0'
+        ),
+        'APISPEC_SWAGGER_URL': '/swagger/',  # URI to access API Doc JSON
+        'APISPEC_SWAGGER_UI_URL': '/swagger-ui/'  # URI to access UI of API Doc
+    })
+    docs = FlaskApiSpec(app)
+
+    docs.register(LoginEndpoint)
+    docs.register(LogoutEndpoint)
+    docs.register(ForgotPasswordEndpoint)
 
     return app
