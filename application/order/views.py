@@ -42,18 +42,18 @@ def get_unique_confirmation_code():
 
 # For single order
 class OrderEndpoint(Resource):
-    get_args: dict = reqparse.RequestParser()
+    get_args = reqparse.RequestParser()
     get_args.add_argument('order_id', type=int, required=True)
 
-    post_args: dict = reqparse.RequestParser()
-    post_args.add_argument('user_id', type=int, required=False)
+    post_args = reqparse.RequestParser()
+    # post_args.add_argument('user_id', type=int, required=False)
     post_args.add_argument('club_id', type=int, required=True)
     post_args.add_argument('comment', type=str, required=False)
     post_args.add_argument('club_service_ids', type=int, action='append')
 
-    delete_args: dict = reqparse.RequestParser()
+    delete_args = reqparse.RequestParser()
     delete_args.add_argument('order_id', type=int, required=True)
-    delete_args.add_argument('user_id', type=int, required=False)
+    # delete_args.add_argument('user_id', type=int, required=False)
 
     @marshal_with(single_order_response)
     @jwt_required()
@@ -61,12 +61,12 @@ class OrderEndpoint(Resource):
         # get info about order
         args: dict = self.get_args.parse_args()
         current_user = get_jwt_identity()
-        order = db.session.query(Order).filter(Order.id == args['order_id']).first()
+        order = db.session.query(Order)\
+            .filter(Order.id == args['order_id'], Order.user_id == current_user.id)\
+            .first()
         
         if not order:
             abort(404, message=f'Order with id: {args["order_id"]} is not found')
-        if order.user_id != current_user.id:
-            abort(403, message='You have no access to this endpoint')
 
         return order
 
@@ -78,20 +78,21 @@ class OrderEndpoint(Resource):
         current_user = get_jwt_identity()
 
         club_service_ids: List[int] = args.get('club_service_ids')
-        for club_service_id in club_service_ids:
-            if not isinstance(club_service_id, int):
-                abort(400, message='Club services ids must be all integers ([1, 2])')
+        # We don't need this check because ParserArgument already do this
+        # for club_service_id in club_service_ids:
+        #     if not isinstance(club_service_id, int):
+        #         abort(400, message='Club services ids must be all integers ([1, 2])')
 
-        user_id = args.get('user_id') or current_user.id
-        club_services = db.session\
+        user_id = current_user.id
+        choiced_club_services = db.session\
             .query(ClubService)\
-            .filter(ClubService.id.in_(club_service_ids), ClubService.enabled == 1)
+            .filter(ClubService.id.in_(club_service_ids), ClubService.enabled.is_(True))
         
-        if len(club_service_ids) != club_services.count():
+        if len(club_service_ids) != choiced_club_services.count():
             abort(404, message='One of club_service_id not found')
 
         price = 0
-        for club_service in club_services.all():
+        for club_service in choiced_club_services.all():
             price += club_service.price
 
         try:
@@ -107,11 +108,11 @@ class OrderEndpoint(Resource):
             )
 
             db.session.add(new_order)
-            db.session.commit()
+            db.session.flush()
 
-            for club_service in club_services.all():
-                new_order_service_id = OrderService(order=new_order, club_service=club_service)
-                db.session.add(new_order_service_id)
+            for club_service in choiced_club_services.all():
+                new_ordered_service = OrderService(order=new_order, club_service=club_service)
+                db.session.add(new_ordered_service)
 
             db.session.commit()
             return new_order
@@ -128,7 +129,7 @@ class OrderEndpoint(Resource):
         args: dict = self.delete_args.parse_args()
         order_id = args['order_id']
         current_user = get_jwt_identity()
-        user_id = current_user.id or args.get('user_id')
+        user_id = current_user.id
 
         order: Order = db.session\
             .query(Order)\

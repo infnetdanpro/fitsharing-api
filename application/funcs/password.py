@@ -9,7 +9,6 @@ def hash_password(password: str):
     return (salt + pwdhash).decode('ascii')
 
 
-
 def verify_password(stored_password: str, provided_password: str):
     salt = stored_password[:64]
     stored_password = stored_password[64:]

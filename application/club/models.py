@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from application.database import db
 from geoalchemy2 import Geometry
 
+
 class Club(db.Model):
     __tablename__ = 'club'
 
@@ -62,7 +63,9 @@ class Days(StrEnum):
     saturday = 'saturday'
     sunday = 'sunday'
 
+
 days_order = ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
+
 
 class ClubWorkSchedule(db.Model):
     __tablename__ = 'club_work_schedules'
@@ -76,6 +79,7 @@ class ClubWorkSchedule(db.Model):
 
     def __repr__(self):
         return str(self.day.value)
+
 
 class Service(db.Model):
     __tablename__ = 'service'
@@ -94,5 +98,5 @@ class ClubService(db.Model):
     club = relationship('Club')
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
     service = relationship('Service')
-    enabled = db.Column(db.Boolean, unique=False, nullable=True, default=True, server_default='true')
-    price = db.Column(db.Float, unique=False, nullable=True)
+    enabled = db.Column(db.Boolean, nullable=True, default=True, server_default='true')
+    price = db.Column(db.Float, nullable=True)

@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+from typing import List
+
 from flask import jsonify
 from flask_apispec import marshal_with, MethodResource, use_kwargs, doc
 from flask_jwt_extended import (
@@ -10,8 +13,16 @@ from flask_jwt_extended import (
 )
 from flask_restful import Resource, reqparse, abort
 
-from application.auth.docs import LoginPostEndpointResponse, LoginPostEndpointRequest, LogoutGetResponse, \
-    ForgotPasswordPutResponse, ForgotPasswordPutRequest, ForgotPasswordPostRequest, ForgotPasswordPostResponse
+from application.auth.docs import (
+    LoginPostEndpointResponse,
+    LoginPostEndpointRequest,
+    LogoutGetResponse,
+    ForgotPasswordPutResponse,
+    ForgotPasswordPutRequest,
+    ForgotPasswordPostRequest,
+    ForgotPasswordPostResponse,
+    RefreshTokenPostEndpointResponse
+)
 from application.email.sender import send_email
 from application.funcs.confirmation_code import generate_code
 from application.funcs.password import verify_password, hash_password
@@ -64,11 +75,16 @@ class ForgotPasswordEndpoint(MethodResource, Resource):
         # Perform code
 
         # check code exists
-        forgot_password_model = db.session.query(ForgotPassword)\
+        forgot_password_model: ForgotPassword = db.session.query(ForgotPassword)\
             .filter(ForgotPassword.reset_code == kwargs.get('reset_code'))\
             .first()
 
         if not forgot_password_model:
+            abort(404, message='Reset code expired or not found')
+
+        if (datetime.utcnow() - forgot_password_model.created_at) > timedelta(hours=1):
+            db.session.delete(forgot_password_model)
+            db.session.commit()
             abort(404, message='Reset code expired or not found')
 
         # Get active user
@@ -84,11 +100,15 @@ class ForgotPasswordEndpoint(MethodResource, Resource):
         if 256 > len(kwargs.get('new_password')) < 8:
             abort(400, message='Password field is too short (8, 256)')
 
+        # clear all reset codes for user:
+        forgot_password_requests: List[ForgotPassword] = db.session.query(ForgotPassword)\
+            .filter(ForgotPassword.user_id == forgot_password_model.user_id)\
+            .all()
         try:
             user.password = hash_password(kwargs.get('new_password'))
-            db.session.commit()
 
-            db.session.delete(forgot_password_model)
+            for fg in forgot_password_requests:
+                db.session.delete(fg)
             db.session.commit()
         except Exception as e:
             print(e)
@@ -139,7 +159,9 @@ class LogoutEndpoint(MethodResource, Resource):
         return response
 
 
-class RefreshTokenEndpoint(Resource):
+class RefreshTokenEndpoint(MethodResource, Resource):
+    @doc(description='Route for refresh access_token and auth-cookie', tags=['Auth'])
+    @marshal_with(RefreshTokenPostEndpointResponse)
     @jwt_required(refresh=True)
     def post(self):
         identity = get_jwt_identity()

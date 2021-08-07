@@ -12,10 +12,13 @@ class Order(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = relationship('User')
+    user = relationship(User)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
-    club = relationship('Club')
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))   # default datetime.utcnow
+    club = relationship(Club)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow,
+                           server_default=text('CURRENT_TIMESTAMP'))
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow,
+                           server_default=text('CURRENT_TIMESTAMP'), onupdate=text('CURRENT_TIMESTAMP'))
     comment = db.Column(db.String(256), nullable=True)
     price = db.Column(db.Float, nullable=False)     # calculated
     time_to_come = db.Column(db.Integer, default=0, nullable=False)
@@ -31,12 +34,11 @@ class Order(db.Model):
     is_active = db.Column(db.Boolean, default=False, nullable=False, server_default='false')
 
 
-
 class OrderService(db.Model):
     __tablename__ = 'order_service'
 
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
-    order = relationship('Order')
+    order = relationship(Order)
     club_service_id = db.Column(db.Integer, db.ForeignKey('club_service.id'))
-    club_service = relationship('ClubService')
+    club_service = relationship(ClubService)

@@ -105,5 +105,6 @@ def create_app():
     docs.register(LoginEndpoint)
     docs.register(LogoutEndpoint)
     docs.register(ForgotPasswordEndpoint)
+    docs.register(RefreshTokenEndpoint)
 
     return app

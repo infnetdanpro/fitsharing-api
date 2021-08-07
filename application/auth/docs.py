@@ -30,3 +30,7 @@ class ForgotPasswordPostRequest(Schema):
 
 class ForgotPasswordPostResponse(Schema):
     password_changed = fields.Bool()
+
+
+class RefreshTokenPostEndpointResponse(Schema):
+    access_token = fields.Str()
