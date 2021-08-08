@@ -22,6 +22,14 @@ class Club(db.Model):
     images = relationship('ClubGallery')
     work_hours = relationship('ClubWorkSchedule')
 
+    def get_price_per_minute(self):
+        price = db.session.execute("""
+            SELECT price FROM club_service WHERE club_id = :club_id AND service_type = 'main'
+        """, params={'club_id': self.id}).fetchall()
+        if not price:
+            return 0
+
+        return price[0][0]
 
 class ClubGallery(db.Model):
     __tablename__ = 'club_gallery'
@@ -100,9 +108,9 @@ class ClubService(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'))
-    club = relationship('Club')
+    club = relationship(Club)
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
-    service = relationship('Service')
+    service = relationship(Service)
     enabled = db.Column(db.Boolean, nullable=True, default=True, server_default='true')
     price = db.Column(db.Float, nullable=True)
     service_type = db.Column(db.Enum(ServiceType), nullable=True, default='additional', server_default='additional')

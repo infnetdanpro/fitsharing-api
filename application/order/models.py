@@ -23,6 +23,9 @@ class Order(db.Model):
     price = db.Column(db.Float, nullable=False)     # calculated
     time_to_come = db.Column(db.Integer, default=0, nullable=False)
     confirmation_code = db.Column(db.String(32), nullable=False)
+    complete = db.Column(db.Boolean, default=False, server_default=text('false'))
+    completed_at = db.Column(db.DateTime)
+    confirmed_at = db.Column(db.DateTime)
 
     # Updated fields by client and club
     confirmed_client = db.Column(db.Boolean, default=False, nullable=False, server_default='false')     # boolean
