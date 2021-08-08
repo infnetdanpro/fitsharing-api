@@ -48,7 +48,7 @@ class UserEndpoint(MethodResource, Resource):
     @marshal_with_swagger(FullUserResponse)
     @jwt_required()
     def get(self, *args, **kwargs):
-        current_user = get_jwt_identity()
+        current_user = db.session.query(User).filter(User.email == get_jwt_identity()).one()
 
         user = db.session.query(User)\
             .filter(User.id == current_user.id, User.enabled.is_(True))\
@@ -89,7 +89,7 @@ class UserEndpoint(MethodResource, Resource):
     @jwt_required()
     def put(self, *args, **kwargs):
         args: dict = self.put_parser.parse_args()
-        current_user = get_jwt_identity()
+        current_user = db.session.query(User).filter(User.email == get_jwt_identity()).one()
 
         user = db.session.query(User)\
             .filter(User.id == current_user.id, User.enabled.is_(True))\
@@ -111,7 +111,7 @@ class UserEndpoint(MethodResource, Resource):
     @marshal_with_swagger(DeleteUserResponse)
     @jwt_required()
     def delete(self, *args, **kwargs):
-        current_user = get_jwt_identity()
+        current_user = db.session.query(User).filter(User.email == get_jwt_identity()).one()
 
         user = db.session.query(User).filter(User.id == current_user.id, User.enabled.is_(True)).first()
         if not user:

@@ -20,21 +20,24 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow,
                            server_default=text('CURRENT_TIMESTAMP'), onupdate=text('CURRENT_TIMESTAMP'))
     comment = db.Column(db.String(256), nullable=True)
-    price = db.Column(db.Float, nullable=False)     # calculated
+    price = db.Column(db.Float)     # calculated
     time_to_come = db.Column(db.Integer, default=0, nullable=False)
     confirmation_code = db.Column(db.String(32), nullable=False)
+
+    # arrived client and confirm by club
+    client_arrived_at = db.Column(db.DateTime)
+    club_confirmed_client_arrived_at = db.Column(db.DateTime)
+
+    # End arrive by user and confirm by club
+    client_completed_at = db.Column(db.DateTime)
+    club_confirmed_client_completed_at = db.Column(db.DateTime)
+
+    # Cancel order by client/by club
+    client_canceled_at = db.Column(db.DateTime)
+    club_canceled_at = db.Column(db.DateTime)
+
+    # When user/club is confirmed arrive
     complete = db.Column(db.Boolean, default=False, server_default=text('false'))
-    completed_at = db.Column(db.DateTime)
-    confirmed_at = db.Column(db.DateTime)
-
-    # Updated fields by client and club
-    confirmed_client = db.Column(db.Boolean, default=False, nullable=False, server_default='false')     # boolean
-    confirmed_club = db.Column(db.Boolean, default=False, nullable=False, server_default='false')     # boolean
-
-    # For canceling orders
-    canceled_by_client = db.Column(db.Boolean, default=False, nullable=False, server_default='false')
-    canceled_by_club = db.Column(db.Boolean, default=False, nullable=False, server_default='false')
-    is_active = db.Column(db.Boolean, default=False, nullable=False, server_default='false')
 
 
 class OrderService(db.Model):
