@@ -120,8 +120,8 @@ class OrderEndpoint(Resource):
             db.session.rollback()
             abort(400, message=f'Error creating order: {e}')
 
-    def patch(self):
-        # update order by client/club
+    def put(self):
+        # update order by client
         pass
 
     def delete(self):
@@ -129,11 +129,10 @@ class OrderEndpoint(Resource):
         args: dict = self.delete_args.parse_args()
         order_id = args['order_id']
         current_user = get_jwt_identity()
-        user_id = current_user.id
 
         order: Order = db.session\
             .query(Order)\
-            .filter(Order.id == order_id, Order.user_id == user_id)\
+            .filter(Order.id == order_id, Order.user_id == current_user.id)\
             .first()
 
         if not order:

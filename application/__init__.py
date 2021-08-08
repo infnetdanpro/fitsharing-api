@@ -66,10 +66,8 @@ def create_app():
     api.add_resource(ClubsEndpoint, '/api/clubs/all')
     api.add_resource(ClubServiceEndpoint, '/api/clubs/services')
 
-
     from application.order.views import OrderEndpoint
     api.add_resource(OrderEndpoint, '/api/orders')
-
 
     from application.content.views import PagesEndpoint
     api.add_resource(PagesEndpoint, '/api/page')

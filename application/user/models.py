@@ -18,9 +18,26 @@ class User(db.Model):
     avatar = db.Column(db.String, nullable=True)
     date_of_birth = db.Column(db.Date, nullable=False)
     enabled = db.Column(db.Boolean, nullable=False, default=True, server_default='true')
+    created_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'),
+                           onupdate=text('CURRENT_TIMESTAMP'))
 
     def __repr__(self):
         return f'<User {self.username}. ID: {self.id}>'
+
+
+class VerifiedUsersByClub(db.Model):
+    """
+    Which club verified users data
+    """
+    __tablename__ = 'verified_user_by_club'
+
+    id = db.Column(db.Integer, primary_key=True)
+    club_id = db.Column(db.Integer, db.ForeignKey('club.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    created_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'),
+                           onupdate=text('CURRENT_TIMESTAMP'))
 
 
 class ForgotPassword(db.Model):

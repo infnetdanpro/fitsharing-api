@@ -169,7 +169,8 @@ def seed_db():
         club_service_1_1 = ClubService(
             club_id=club_1.id,
             service_id=service_1.id,
-            price=10.0
+            price=10.0,
+            service_type='main'
         )
         club_service_1_2 = ClubService(
             club_id=club_1.id,
@@ -195,7 +196,8 @@ def seed_db():
         club_service_2_1 = ClubService(
             club_id=club_2.id,
             service_id=service_1.id,
-            price=10.0
+            price=10.0,
+            service_type='main'
         )
         club_service_2_2 = ClubService(
             club_id=club_2.id,
@@ -211,7 +213,8 @@ def seed_db():
         club_service_3_1 = ClubService(
             club_id=club_3.id,
             service_id=service_1.id,
-            price=12.0
+            price=12.0,
+            service_type='main'
         )
         club_service_3_2 = ClubService(
             club_id=club_3.id,

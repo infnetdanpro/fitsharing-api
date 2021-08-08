@@ -124,6 +124,7 @@ class ClubServiceEndpoint(Resource):
                 'name': cs.service.name,
                 'about': cs.service.about,
                 'price': cs.price,
+                'service_type': cs.service_type
             })
         resp.update({'services': services})
         return resp

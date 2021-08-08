@@ -2,6 +2,7 @@ from marshmallow import Schema, fields
 
 
 class RegisterPostRequest(Schema):
+    username = fields.Str(required=True)
     firstname = fields.Str(required=True)
     lastname = fields.Str(required=True)
     email = fields.Str(required=True)

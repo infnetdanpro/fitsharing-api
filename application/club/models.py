@@ -90,6 +90,11 @@ class Service(db.Model):
     enabled = db.Column(db.Boolean, unique=False, nullable=True, default=True, server_default='true')
 
 
+class ServiceType(StrEnum):
+    main = 'main'
+    additional = 'additional'
+
+
 class ClubService(db.Model):
     __tablename__ = 'club_service'
 
@@ -100,3 +105,4 @@ class ClubService(db.Model):
     service = relationship('Service')
     enabled = db.Column(db.Boolean, nullable=True, default=True, server_default='true')
     price = db.Column(db.Float, nullable=True)
+    service_type = db.Column(db.Enum(ServiceType), nullable=True, default='additional', server_default='additional')
