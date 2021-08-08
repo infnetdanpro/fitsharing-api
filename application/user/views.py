@@ -1,35 +1,21 @@
 from functools import lru_cache
 
+from flask_apispec import MethodResource, doc, use_kwargs, marshal_with as marshal_with_swagger
 from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask_restful import Resource, reqparse, abort, fields, marshal_with
+from flask_restful import Resource, reqparse, abort
 from email_validator import validate_email, EmailNotValidError
 
 from application.database import db
+from application.user.docs import (
+    RegisterPostRequest,
+    FullUserResponse,
+    UpdateUserRequest,
+    DeleteUserResponse
+)
 from application.user.models import User
 from application.funcs.password import hash_password
 
-user_response = {
-    'id': fields.Integer,
-    'enabled': fields.Boolean,
-    'username': fields.String,
-    'avatar': fields.String
-}
-
-full_user_response = {
-    **user_response,
-    'enabled': fields.Boolean,
-    'firstname': fields.String,
-    'lastname': fields.String,
-    'phone': fields.String,
-    'email': fields.String,
-    'date_of_birth': fields.String
-}
-
-success_delete_response = {
-    'id': fields.Integer,
-    'enabled': fields.Boolean
-}
 
 @lru_cache()
 def email_validator_cached(email):
@@ -41,10 +27,7 @@ def email_validator_cached(email):
         abort(400, message='Bad email')
 
 
-class UserEndpoint(Resource):
-    get_parser = reqparse.RequestParser()
-    get_parser.add_argument('id', type=int, required=False)
-
+class UserEndpoint(MethodResource, Resource):
     post_parser = reqparse.RequestParser()
     post_parser.add_argument('username', type=str, required=True)
     post_parser.add_argument('firstname', type=str, required=True)
@@ -61,27 +44,25 @@ class UserEndpoint(Resource):
     put_parser.add_argument('phone', type=str, required=True)
     put_parser.add_argument('date_of_birth', type=str, required=True)
 
-    delete_parser = reqparse.RequestParser()
-    delete_parser.add_argument('id', type=str, required=True)
-
-    @marshal_with(full_user_response)
+    @doc(description='Get full user info, auth required', tags=['User'])
+    @marshal_with_swagger(FullUserResponse)
     @jwt_required()
-    def get(self):
-        args: dict = self.get_parser.parse_args()
+    def get(self, *args, **kwargs):
         current_user = get_jwt_identity()
 
-        if current_user.id != args['id']:
-            abort(403, message='Access denied')
-
-        user = db.session.query(User).filter(User.id == args['id'], User.enabled == True).first()
+        user = db.session.query(User)\
+            .filter(User.id == current_user.id, User.enabled.is_(True))\
+            .first()
 
         if not user:
             abort(404, message='User not found')
 
         return user
 
-    @marshal_with(full_user_response)
-    def post(self):
+    @doc(description='Register user', tags=['User'])
+    @use_kwargs(RegisterPostRequest)
+    @marshal_with_swagger(FullUserResponse)
+    def post(self, *args, **kwargs):
         user = User(**self.post_parser.parse_args())
         if 256 > len(user.password) < 8:
             abort(400, message='Password field is too short (8, 256)')
@@ -102,39 +83,44 @@ class UserEndpoint(Resource):
 
         return user
 
-    @marshal_with(full_user_response)
+    @doc(description='Update user endpoint', tags=['User'])
+    @use_kwargs(UpdateUserRequest)
+    @marshal_with_swagger(FullUserResponse)
     @jwt_required()
-    def put(self):
+    def put(self, *args, **kwargs):
         args: dict = self.put_parser.parse_args()
         current_user = get_jwt_identity()
 
-        if current_user.id != args['id']:
-            abort(403, message='Access denied')
-
-        user = db.session.query(User).filter(User.id == args['id'], User.enabled == True).first()
+        user = db.session.query(User)\
+            .filter(User.id == current_user.id, User.enabled.is_(True))\
+            .first()
 
         if not user:
             abort(404, message='User not found')
 
-        for field, value in args.items():
-            if field != 'id':
+        try:
+            for field, value in args.items():
                 setattr(user, field, value)
-
-        db.session.commit()
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
 
         return user
 
-    @marshal_with(success_delete_response)
+    @doc(description='Delete current user (auth required)', tags=['User'])
+    @marshal_with_swagger(DeleteUserResponse)
     @jwt_required()
-    def delete(self):
-        args: dict = self.delete_parser.parse_args()
+    def delete(self, *args, **kwargs):
         current_user = get_jwt_identity()
 
-        if current_user.id != args['id']:
-            abort(403, message='Access denied')
+        user = db.session.query(User).filter(User.id == current_user.id, User.enabled.is_(True)).first()
+        if not user:
+            abort(400, message='Problem with getting your user')
 
-        user = db.session.query(User).filter(User.id == args['id'], User.enabled == True).first()
-        user.enabled = 0
-        db.session.commit()
+        try:
+            user.enabled = False
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
 
         return user
