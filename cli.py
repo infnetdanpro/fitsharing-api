@@ -1,12 +1,25 @@
 import datetime
 
 import click
+import sentry_sdk
+
+from application import config
+
+sentry_sdk.init(
+    config.SENTRY_DSN,
+    environment=config.FLASK_ENV,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0
+)
 
 
 @click.group()
 @click.option('--debug/--no-debug', default=False)
 def cli(debug):
     click.echo(f"Debug mode is {'on' if debug else 'off'}")
+
 
 @cli.command()
 def seed_db():
@@ -290,6 +303,7 @@ def seed_db():
             print(e)
             db.session.rollback()
 
+
 @cli.command()
 def seed_pages():
     from application import create_app
@@ -325,6 +339,7 @@ def seed_pages():
             db.session.rollback()
 
         create_orders()
+
 
 @cli.command()
 def clear_tables():

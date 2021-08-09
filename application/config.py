@@ -23,3 +23,5 @@ JWT_REFRESH_TOKEN_EXPIRES = os.environ.get('JWT_REFRESH_TOKEN_EXPIRES', 86400)
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_SUBJECT = os.environ.get('SENDGRID_FROM_NAME', 'FitSharing Support')
 SENDGRID_FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'dan-pro352@ya.ru')
+
+SENTRY_DSN = os.environ.get('SENTRY_DSN')

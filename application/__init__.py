@@ -7,8 +7,20 @@ from flask_apispec import FlaskApiSpec
 from flask_jwt_extended import JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies
 from flask_jwt_extended.exceptions import JWTExtendedException
 from flask_restful import Api
-# from flask_cors import CORS
 from jwt import PyJWTError
+
+import sentry_sdk
+
+from application import config
+
+sentry_sdk.init(
+    config.SENTRY_DSN,
+    environment=config.FLASK_ENV,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0
+)
 
 from application.database import migrate, db
 from application.auth.jwt_auth import authenticate, identity
