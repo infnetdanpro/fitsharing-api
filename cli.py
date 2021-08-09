@@ -324,6 +324,8 @@ def seed_pages():
             print(e)
             db.session.rollback()
 
+        create_orders()
+
 @cli.command()
 def clear_tables():
     from application import create_app
@@ -347,6 +349,62 @@ def clear_tables():
             TRUNCATE TABLE public.user RESTART IDENTITY CASCADE;
         """)
         db.session.commit()
+
+
+@cli.command()
+def create_orders():
+    from datetime import datetime, timedelta
+    import random
+    from application import create_app
+    from application.database import db
+    from application.user.models import User
+    from application.order.models import Order
+    from application.club.models import Club
+    from application.order.views import get_unique_confirmation_code
+
+    app = create_app()
+    db.init_app(app)
+
+    # users
+    with app.app_context():
+        users = db.session.query(User).all()
+        clubs = db.session.query(Club).all()
+
+        for user in users:
+            club = random.choice(clubs)
+            created_at = datetime.utcnow() - timedelta(minutes=user.id * 60)
+
+            client_arrived_at = created_at + timedelta(minutes=user.id * 40)
+            club_confirmed_client_arrived_at = client_arrived_at + timedelta(minutes=user.id * 1)
+
+            client_completed_at = club_confirmed_client_arrived_at + timedelta(minutes=user.id * 30)
+            club_confirmed_client_completed_at = client_completed_at + timedelta(minutes=user.id * 1)
+
+            order = Order(
+                confirmation_code=get_unique_confirmation_code(),
+                time_to_come=60,
+                created_at=created_at,
+                updated_at=created_at,
+                user_id=user.id,
+                club_id=club.id,
+                client_arrived_at=client_arrived_at,
+                club_confirmed_client_arrived_at=club_confirmed_client_arrived_at,
+                client_completed_at=client_completed_at,
+                club_confirmed_client_completed_at=club_confirmed_client_completed_at,
+                complete=True
+            )
+            db.session.add(order)
+            db.session.flush()
+
+            price_per_minute = order.club.get_price_per_minute()
+            total_price = (order.client_completed_at - order.client_arrived_at).seconds // 60 * price_per_minute
+            order.price = total_price
+            try:
+                db.session.commit()
+            except Exception as e:
+                print(e)
+                db.session.rollback()
+
 
 if __name__ == '__main__':
     cli()
