@@ -4,9 +4,10 @@ from typing import List
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restful import Resource, reqparse, abort, fields
 from flask_apispec import MethodResource, marshal_with as marshal_with_swagger, doc, use_kwargs
+from sqlalchemy import desc
 
 from application.order.docs import OrderResponse, UpdateOrderRequest, PostOrderRequest, DeleteOrderRequest, \
-    GetOrderRequest
+    GetOrderRequest, ListOrderResponse
 from application.order.models import Order, OrderService
 from application.club.models import ClubService
 from application.database import db
@@ -216,3 +217,26 @@ class OrderEndpoint(MethodResource, Resource):
         except Exception as e:
             db.session.rollback()
             abort(422, message=f'Can not cancel order: {args["order_id"]}.')
+
+
+class OrderHistoryEndpoint(MethodResource, Resource):
+    get_args = reqparse.RequestParser()
+    get_args.add_argument('limit', type=int, default=10)
+    get_args.add_argument('offset', type=int, default=0)
+
+    @doc(description='History of orders, auth required', tags=['Order'])
+    @marshal_with_swagger(ListOrderResponse)
+    @jwt_required()
+    def get(self, *args, **kwargs):
+        args: dict = self.get_args.parse_args()
+        current_user = db.session.query(User).filter(User.email == get_jwt_identity()).one()
+
+        orders: List[Order] = db.session\
+            .query(Order)\
+            .filter(Order.user_id == current_user.id)\
+            .order_by(desc(Order.created_at))\
+            .limit(args['limit'])\
+            .offset(args['offset'])\
+            .all()
+
+        return {'orders': orders, 'limit': args['limit'], 'offset': args['offset']}

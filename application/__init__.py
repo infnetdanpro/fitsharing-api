@@ -66,8 +66,9 @@ def create_app():
     api.add_resource(ClubsEndpoint, '/api/clubs/all')
     api.add_resource(ClubServiceEndpoint, '/api/clubs/services')
 
-    from application.order.views import OrderEndpoint
+    from application.order.views import OrderEndpoint, OrderHistoryEndpoint
     api.add_resource(OrderEndpoint, '/api/orders')
+    api.add_resource(OrderHistoryEndpoint, '/api/orders/history')
 
     from application.content.views import PagesEndpoint
     api.add_resource(PagesEndpoint, '/api/page')
@@ -106,5 +107,6 @@ def create_app():
     docs.register(RefreshTokenEndpoint)
     docs.register(UserEndpoint)
     docs.register(OrderEndpoint)
+    docs.register(OrderHistoryEndpoint)
 
     return app

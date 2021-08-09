@@ -46,3 +46,9 @@ class PostOrderRequest(Schema):
 
 class DeleteOrderRequest(Schema):
     order_id = fields.Int(required=True)
+
+
+class ListOrderResponse(Schema):
+    orders = fields.List(fields.Nested(OrderResponse))
+    limit = fields.Int(default=10)
+    offset = fields.Int(default=0)
