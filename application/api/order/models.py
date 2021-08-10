@@ -3,8 +3,8 @@ import datetime
 from sqlalchemy import text
 from sqlalchemy.orm import relationship
 from application.database import db
-from application.user.models import User
-from application.club.models import Club, ClubService
+from application.api.user.models import User
+from application.api.club.models import Club, ClubService
 
 
 class Order(db.Model):

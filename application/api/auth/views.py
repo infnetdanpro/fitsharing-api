@@ -13,7 +13,7 @@ from flask_jwt_extended import (
 )
 from flask_restful import Resource, reqparse, abort
 
-from application.auth.docs import (
+from application.api.auth.docs import (
     LoginPostEndpointResponse,
     LoginPostEndpointRequest,
     LogoutGetResponse,
@@ -23,11 +23,11 @@ from application.auth.docs import (
     ForgotPasswordPostResponse,
     RefreshTokenPostEndpointResponse
 )
-from application.email.sender import send_email
-from application.funcs.confirmation_code import generate_code
-from application.funcs.password import verify_password, hash_password
+from application.api.email.sender import send_email
+from application.api.funcs.confirmation_code import generate_code
+from application.api.funcs.password import verify_password, hash_password
 from application.database import db
-from application.user.models import User, ForgotPassword
+from application.api.user.models import User, ForgotPassword
 
 
 class ForgotPasswordEndpoint(MethodResource, Resource):

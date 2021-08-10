@@ -1,5 +1,5 @@
 from application import config
-from application.email.email import EmailClient
+from application.api.email.email import EmailClient
 
 
 def send_email(to_email: str, content: str = None) -> bool:

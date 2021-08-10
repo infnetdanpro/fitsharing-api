@@ -6,13 +6,17 @@ from flask_restful import Resource, reqparse, abort, fields
 from flask_apispec import MethodResource, marshal_with as marshal_with_swagger, doc, use_kwargs
 from sqlalchemy import desc
 
-from application.order.docs import OrderResponse, UpdateOrderRequest, PostOrderRequest, DeleteOrderRequest, \
-    GetOrderRequest, ListOrderResponse
-from application.order.models import Order, OrderService
-from application.club.models import ClubService
+from application.api.order.docs import (
+    OrderResponse,
+    UpdateOrderRequest,
+    PostOrderRequest,
+    ListOrderResponse
+)
+from application.api.order.models import Order, OrderService
+from application.api.club.models import ClubService
 from application.database import db
-from application.funcs.confirmation_code import generate_code
-from application.user.models import User
+from application.api.funcs.confirmation_code import generate_code
+from application.api.user.models import User
 
 single_order_response = {
     'id': fields.Integer,
