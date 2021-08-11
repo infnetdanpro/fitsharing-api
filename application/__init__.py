@@ -1,5 +1,3 @@
-import datetime
-
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
 from flask import Flask
@@ -22,12 +20,11 @@ sentry_sdk.init(
     traces_sample_rate=1.0
 )
 
-from application.database import migrate, db
-from application.auth.jwt_auth import authenticate, identity
-from application.user.models import *
-from application.club.models import *
-from application.order.models import *
-from application.content.models import *
+from application.database import *
+from application.models.user.models import *
+from application.models.club.models import *
+from application.models.order.models import *
+from application.models.content.models import *
 
 
 class FixedApi(Api):
@@ -64,25 +61,25 @@ def create_app():
             migrate.init_app(app, db)
     
     # ROUTES
-    from application.auth.views import LoginEndpoint, LogoutEndpoint, RefreshTokenEndpoint, ForgotPasswordEndpoint
+    from application.api.auth.views import LoginEndpoint, LogoutEndpoint, RefreshTokenEndpoint, ForgotPasswordEndpoint
     api.add_resource(LoginEndpoint, '/api/login')
     api.add_resource(LogoutEndpoint, '/api/logout')
     api.add_resource(ForgotPasswordEndpoint, '/api/forgot-password')
     api.add_resource(RefreshTokenEndpoint, '/api/refresh')
 
-    from application.user.views import UserEndpoint
+    from application.api.user.views import UserEndpoint
     api.add_resource(UserEndpoint, '/api/users')
 
-    from application.club.views import ClubEndpoint, ClubServiceEndpoint, ClubsEndpoint
+    from application.api.club.views import ClubEndpoint, ClubServiceEndpoint, ClubsEndpoint
     api.add_resource(ClubEndpoint, '/api/clubs')
     api.add_resource(ClubsEndpoint, '/api/clubs/all')
     api.add_resource(ClubServiceEndpoint, '/api/clubs/services')
 
-    from application.order.views import OrderEndpoint, OrderHistoryEndpoint
+    from application.api.order.views import OrderEndpoint, OrderHistoryEndpoint
     api.add_resource(OrderEndpoint, '/api/orders')
     api.add_resource(OrderHistoryEndpoint, '/api/orders/history')
 
-    from application.content.views import PagesEndpoint
+    from application.api.content.views import PagesEndpoint
     api.add_resource(PagesEndpoint, '/api/page')
 
     @app.after_request

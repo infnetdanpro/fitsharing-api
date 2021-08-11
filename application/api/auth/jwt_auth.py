@@ -1,6 +1,6 @@
 from application.database import db
-from application.user.models import User
-from application.funcs.password import verify_password
+from application.models.user.models import User
+from application.api.funcs.password import verify_password
 
 
 def authenticate(email, password):

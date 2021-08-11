@@ -4,6 +4,7 @@ from sqlalchemy import text
 
 from application.database import db
 
+
 class PublicPage(db.Model):
     __tablename__ = 'page'
 

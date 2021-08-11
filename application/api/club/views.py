@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
 
 from application.database import db
-from application.club.models import Club, ClubService, days_order
+from application.models.club.models import Club, ClubService, days_order
 
 images_club_response = {
     'name': fields.String,

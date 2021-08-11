@@ -7,14 +7,14 @@ from flask_restful import Resource, reqparse, abort
 from email_validator import validate_email, EmailNotValidError
 
 from application.database import db
-from application.user.docs import (
+from application.api.user.docs import (
     RegisterPostRequest,
     FullUserResponse,
     UpdateUserRequest,
     DeleteUserResponse
 )
-from application.user.models import User
-from application.funcs.password import hash_password
+from application.models.user.models import User
+from application.api.funcs.password import hash_password
 
 
 @lru_cache()

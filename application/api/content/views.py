@@ -1,7 +1,7 @@
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
 
 from application.database import db
-from application.content.models import PublicPage
+from application.models.content.models import PublicPage
 
 
 page_response = {
