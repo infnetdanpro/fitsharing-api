@@ -27,8 +27,8 @@ def seed_db():
 
     from app import create_app
     from application.database import db
-    from application.api.user.models import User
-    from application.api.club.models import Club, ClubGallery, Service, ClubService, ClubWorkSchedule
+    from application.models.user.models import User
+    from application.models.club.models import Club, ClubGallery, Service, ClubService, ClubWorkSchedule
     from application.api.funcs.password import hash_password
 
     app = create_app()
@@ -308,7 +308,7 @@ def seed_db():
 def seed_pages():
     from application import create_app
     from application.database import db
-    from application.api.content.models import PublicPage
+    from application.models.content.models import PublicPage
 
     app = create_app()
     db.init_app(app)
@@ -372,9 +372,9 @@ def create_orders():
     import random
     from application import create_app
     from application.database import db
-    from application.api.user.models import User
-    from application.api.order.models import Order
-    from application.api.club.models import Club
+    from application.models.user.models import User
+    from application.models.order.models import Order
+    from application.models.club.models import Club
     from application.api.order.views import get_unique_confirmation_code
 
     app = create_app()

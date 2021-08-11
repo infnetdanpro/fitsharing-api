@@ -27,7 +27,7 @@ from application.api.email.sender import send_email
 from application.api.funcs.confirmation_code import generate_code
 from application.api.funcs.password import verify_password, hash_password
 from application.database import db
-from application.api.user.models import User, ForgotPassword
+from application.models.user.models import User, ForgotPassword
 
 
 class ForgotPasswordEndpoint(MethodResource, Resource):

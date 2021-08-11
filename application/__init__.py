@@ -21,10 +21,10 @@ sentry_sdk.init(
 )
 
 from application.database import *
-from application.api.user.models import *
-from application.api.club.models import *
-from application.api.order.models import *
-from application.api.content.models import *
+from application.models.user.models import *
+from application.models.club.models import *
+from application.models.order.models import *
+from application.models.content.models import *
 
 
 class FixedApi(Api):

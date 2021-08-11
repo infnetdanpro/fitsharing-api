@@ -13,7 +13,7 @@ from application.api.user.docs import (
     UpdateUserRequest,
     DeleteUserResponse
 )
-from application.api.user.models import User
+from application.models.user.models import User
 from application.api.funcs.password import hash_password
 
 

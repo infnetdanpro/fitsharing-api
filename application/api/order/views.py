@@ -12,11 +12,11 @@ from application.api.order.docs import (
     PostOrderRequest,
     ListOrderResponse
 )
-from application.api.order.models import Order, OrderService
-from application.api.club.models import ClubService
+from application.models.order.models import Order, OrderService
+from application.models.club.models import ClubService
 from application.database import db
 from application.api.funcs.confirmation_code import generate_code
-from application.api.user.models import User
+from application.models.user.models import User
 
 single_order_response = {
     'id': fields.Integer,
