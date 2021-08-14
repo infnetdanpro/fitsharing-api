@@ -17,4 +17,17 @@ def auth_only(f):
 
 @auth_only
 def main_view():
-    return render_template('club_admin/main.html')
+    context = {}
+    title = 'Главная страница'
+    context.update(title=title)
+
+    return render_template('club_admin/main.html', **context)
+
+
+@auth_only
+def add_club_view():
+    context = {}
+    title = 'Добавление клуба'
+    context.update(title=title)
+
+    return render_template('club_admin/main.html', **context)
