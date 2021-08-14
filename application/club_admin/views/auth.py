@@ -5,7 +5,6 @@ from email_validator import validate_email, EmailNotValidError
 from flask import render_template, url_for, flash
 from flask import request
 from flask_login import login_user, current_user, logout_user
-from flask_wtf import FlaskForm
 from werkzeug.utils import redirect
 
 from application.club_admin.forms import RegisterForm, AuthForm
@@ -24,10 +23,16 @@ def non_auth(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         if current_user.is_authenticated:
-            return redirect(url_for('club_admin.blank_page_view'), code=302)
+            return redirect(url_for('club_admin.main_view'), code=302)
         return f(*args, **kwds)
 
     return wrapper
+
+
+def index_view():
+    if current_user.is_authenticated:
+        return redirect(url_for('club_admin.main_view'), code=302)
+    return redirect(url_for('club_admin.login_view'), code=302)
 
 
 @non_auth
@@ -50,7 +55,7 @@ def login_view():
 
         if club_user and verify_password(club_user.password, password):
             login_user(club_user, remember=remember == 'on')
-            return redirect(url_for('club_admin.blank_page_view'), code=302)
+            return redirect(url_for('club_admin.main_view'), code=302)
         else:
             flash('Пользователь не найден или пароль неверный!', 'error')
 
@@ -142,7 +147,3 @@ def register_club_view():
 def logout_view():
     logout_user()
     return redirect(url_for('club_admin.login_view'), code=302)
-
-
-def blank_page_view():
-    return render_template('club_admin/blank.html')
