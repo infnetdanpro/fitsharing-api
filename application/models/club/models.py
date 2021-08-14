@@ -21,6 +21,7 @@ class Club(db.Model):
     point = db.Column(Geometry('point'))    # SRID 4326 - longitude and latitude
     images = relationship('ClubGallery')
     work_hours = relationship('ClubWorkSchedule')
+    owner_club_user_id = db.Column(db.Integer, db.ForeignKey('club_user.id'), nullable=True)
 
     def get_price_per_minute(self):
         price = db.session.execute("""

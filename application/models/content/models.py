@@ -15,3 +15,5 @@ class PublicPage(db.Model):
     meta_description = db.Column(db.String, nullable=True)
     body = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.now, server_default=text('CURRENT_TIMESTAMP'),
+                           onupdate=text('CURRENT_TIMESTAMP'))

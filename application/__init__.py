@@ -4,6 +4,7 @@ from flask import Flask
 from flask_apispec import FlaskApiSpec
 from flask_jwt_extended import JWTManager, get_jwt, get_jwt_identity, create_access_token, set_access_cookies
 from flask_jwt_extended.exceptions import JWTExtendedException
+from flask_login import LoginManager
 from flask_restful import Api
 from jwt import PyJWTError
 
@@ -14,9 +15,6 @@ from application import config
 sentry_sdk.init(
     config.SENTRY_DSN,
     environment=config.FLASK_ENV,
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    # We recommend adjusting this value in production.
     traces_sample_rate=1.0
 )
 
@@ -25,6 +23,8 @@ from application.models.user.models import *
 from application.models.club.models import *
 from application.models.order.models import *
 from application.models.content.models import *
+from application.models.club_user.models import *
+from application.models.role.models import *
 
 
 class FixedApi(Api):
@@ -47,6 +47,16 @@ def create_app():
     # API
     api = FixedApi(app)
     api.init_app(app)
+
+    club_login_manager = LoginManager()
+    club_login_manager.init_app(app)
+
+    @club_login_manager.user_loader
+    def load_user(user_id):
+        return db.session.query(ClubUser).get(user_id)
+
+    from application.club_admin import bp as bp_route
+    app.register_blueprint(bp_route, url_prefix='/club-panel')
 
     # JWT
     # jwt = JWT(app, authenticate, identity)  # Auto Creates /auth endpoint

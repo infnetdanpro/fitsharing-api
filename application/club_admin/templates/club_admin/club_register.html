@@ -1,0 +1,81 @@
+{% extends 'club_admin/base.html' %}
+{% block title %}FitSharing Club CMS - Регистрация{% endblock %}
+{% block content %}
+    <div class="container">
+
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <!-- Nested Row within Card Body -->
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+                    <div class="col-lg-7">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Регистрация клубного аккаунта</h1>
+                                <p class="mb-4">Чтобы зарегистрировать клуб, вам необходимо создать
+                                    клубный аккаунт, который будет иметь статус "Администратор".
+                                    У данного аккаунта будет полный доступ к панели управления.</p>
+                            </div>
+                            <form class="user" action="{{ club_register_url }}" method="POST">
+                                {{ form_wtf.csrf_token }}
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <input type="text" name="fio" class="form-control form-control-user"
+                                               placeholder="Ваше ФИО" {% if form %} value="{{ form.fio }}" {% endif %} required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input type="text" name="phone" class="form-control form-control-user"
+                                               placeholder="+7 999 777-77-77" {% if form %} value="{{ form.phone }}" {% endif %} required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <input type="email" name="email" class="form-control form-control-user" id="exampleInputEmail"
+                                        placeholder="Email-адрес" {% if form %} value="{{ form.email }}" {% endif %} required>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <input type="password" name="password" class="form-control form-control-user"
+                                            id="exampleInputPassword" placeholder="Пароль" {% if form %} value="{{ form.password }}" {% endif %} required>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <input type="password" name="confirm_password" class="form-control form-control-user"
+                                            id="exampleRepeatPassword" placeholder="Повторите пароль" {% if form %} value="{{ form.confirm_password }}" {% endif %} required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox small">
+                                        <input type="checkbox" name="rules" class="custom-control-input" id="customCheck" {% if form %} checked {% endif %} required>
+                                        <label class="custom-control-label" for="customCheck">Я соглашаюсь с <a href="#">Правилами пользования сервисом</a></label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox small">
+                                        <input type="checkbox" name="offer" class="custom-control-input" id="customCheck2" {% if form %} checked {% endif %} required>
+                                        <label class="custom-control-label" for="customCheck2">Я соглашаюсь с <a href="#">Публичной офертой</a></label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox small">
+                                        <input type="checkbox" name="confidential" class="custom-control-input" id="customCheck3" {% if form %} checked {% endif %} required>
+                                        <label class="custom-control-label" for="customCheck3">Я соглашаюсь с <a href="#">Политикой конфиденциальности</a></label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-user btn-block">
+                                    Регистрация клубного аккаунта
+                                </button>
+                            </form>
+                            <hr>
+<!--                            <div class="text-center">-->
+<!--                                <a class="small" href="forgot-password.html">Forgot Password?</a>-->
+<!--                            </div>-->
+                            <div class="text-center">
+                                <a class="small" href="{{ login_url }}">Уже есть аккаунт? Войдите</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

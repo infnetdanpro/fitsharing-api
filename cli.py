@@ -339,6 +339,7 @@ def seed_pages():
             db.session.rollback()
 
         create_orders()
+        create_roles()
 
 
 @cli.command()
@@ -351,19 +352,29 @@ def clear_tables():
 
     # users
     with app.app_context():
-        db.session.execute(""" 
-            TRUNCATE TABLE public.club RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.club_gallery RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.club_gallery RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.club_work_schedules RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.service RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.club_service RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.page RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.order RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.order_service RESTART IDENTITY CASCADE;
-            TRUNCATE TABLE public.user RESTART IDENTITY CASCADE;
-        """)
-        db.session.commit()
+        try:
+            db.session.execute(""" 
+                TRUNCATE TABLE public.club RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_gallery RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_gallery RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_work_schedules RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.service RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_service RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.page RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.order RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.order_service RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.user RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_user RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_user_log RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_user_association RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.role RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.user_role RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE public.club_user_role RESTART IDENTITY CASCADE;
+            """)
+            db.session.commit()
+        except Exception as e:
+            print('Problem with delete tables:', e)
+            db.session.rollback()
 
 
 @cli.command()
@@ -419,6 +430,30 @@ def create_orders():
             except Exception as e:
                 print(e)
                 db.session.rollback()
+
+
+@cli.command()
+def create_roles():
+    from application import create_app
+    from application.database import db
+    from application import Role
+
+    app = create_app()
+    db.init_app(app)
+
+    # users
+    with app.app_context():
+        club_admin_role = Role(name='club_admin', level=100)
+        club_manager_role = Role(name='club_manager', level=200)
+
+        try:
+            db.session.add(club_admin_role)
+            db.session.add(club_manager_role)
+            db.session.commit()
+            print('role created')
+        except Exception as e:
+            print(f'ROLES NOT CREATED: {e}')
+            db.session.rollback()
 
 
 if __name__ == '__main__':
