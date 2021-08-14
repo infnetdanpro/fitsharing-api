@@ -17,7 +17,7 @@
   <link href="static/css/sb-admin-2.css" rel="stylesheet">
 
 </head>
-<body class="bg-gradient-primary">
+<body class="{% block bg_gradient %}bg-gradient-primary{% endblock %}">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <!-- Error messages -->
