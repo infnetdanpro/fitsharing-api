@@ -30,9 +30,7 @@ def non_auth(f):
 
 
 def index_view():
-    if current_user.is_authenticated:
-        return redirect(url_for('club_admin.main_view'), code=302)
-    return redirect(url_for('club_admin.login_view'), code=302)
+    return redirect(url_for('club_admin.main_view' if current_user.is_authenticated else 'club_admin.login_view'), code=302)
 
 
 @non_auth
