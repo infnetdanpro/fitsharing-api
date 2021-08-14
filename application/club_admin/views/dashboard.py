@@ -17,4 +17,4 @@ def auth_only(f):
 
 @auth_only
 def main_view():
-    return render_template('club_admin/blank.html')
+    return render_template('club_admin/main.html')

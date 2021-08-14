@@ -1,3 +1,5 @@
+from sqlalchemy.orm import relationship
+
 from application.database import db
 
 
@@ -23,3 +25,8 @@ class ClubUserRole(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('club_user.id'))
     role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+
+    role = relationship(Role)
+
+    def __repr__(self):
+        return f'{self.role.name}:{self.role.level}'
