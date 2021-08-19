@@ -94,8 +94,8 @@ def create_app():
 
     @app.after_request
     def refresh_expiring_jwts(response):
-
         try:
+            import datetime
             exp_timestamp = get_jwt()["exp"]
             now = datetime.datetime.now(tz=datetime.timezone.utc)
             target_timestamp = datetime.datetime.timestamp(now + datetime.timedelta(minutes=30))
