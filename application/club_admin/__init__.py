@@ -10,6 +10,7 @@ bp = Blueprint(
     template_folder='templates'
 )
 
+
 bp.add_url_rule('/', view_func=index_view)
 bp.add_url_rule('/login', view_func=login_view, methods=['GET', 'POST'])
 bp.add_url_rule('/register', view_func=register_club_view, methods=['GET', 'POST'])

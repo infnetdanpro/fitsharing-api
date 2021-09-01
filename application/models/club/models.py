@@ -6,6 +6,8 @@ from sqlalchemy.orm import relationship
 from application.database import db
 from geoalchemy2 import Geometry
 
+from application.models.utils import StrEnum
+
 
 class Club(db.Model):
     __tablename__ = 'club'
@@ -41,26 +43,6 @@ class ClubGallery(db.Model):
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
 
-
-class StrEnum(str, enum.Enum):
-    def __new__(cls, *args):
-        for arg in args:
-            if not isinstance(arg, (str, enum.auto)):
-                raise TypeError(
-                    "Values of StrEnums must be strings: {} is a {}".format(
-                        repr(arg), type(arg)
-                    )
-                )
-        return super().__new__(cls, *args)
-
-    def __str__(self):
-        return self.value
-
-    # The first argument to this function is documented to be the name of the
-    # enum member, not `self`:
-    # https://docs.python.org/3.6/library/enum.html#using-automatic-values
-    def _generate_next_value_(name, *_):
-        return name
 
 
 class Days(StrEnum):

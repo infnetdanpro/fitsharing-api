@@ -25,6 +25,7 @@ from application.models.order.models import *
 from application.models.content.models import *
 from application.models.club_user.models import *
 from application.models.role.models import *
+from application.models.notifications.models import *
 
 
 class FixedApi(Api):
