@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import text
+from sqlalchemy.orm import relationship
 
 from application.database import db
 
@@ -21,6 +22,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'),
                            onupdate=text('CURRENT_TIMESTAMP'))
+    verified = relationship('VerifiedUsersByClub', back_populates='user_verify')
 
     def __repr__(self):
         return f'<User {self.username}. ID: {self.id}>'
@@ -34,10 +36,15 @@ class VerifiedUsersByClub(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'))
+    club = relationship('Club')
+    verified_by_club_user_id = db.Column(db.Integer, db.ForeignKey('club_user.id'))
+    verified_by_club_user = relationship('ClubUser')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_verify = relationship(User, back_populates='verified')     # this is real user
     created_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'),
                            onupdate=text('CURRENT_TIMESTAMP'))
+    complete = db.Column(db.Boolean, default=False)
 
 
 class ForgotPassword(db.Model):

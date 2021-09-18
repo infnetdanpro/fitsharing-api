@@ -34,6 +34,13 @@ class Club(db.Model):
 
         return price[0][0]
 
+    def get_active_orders_in_club(self):
+        from application.models.order.models import Order
+        return db.session.query(Order) \
+            .filter(Order.complete.is_(False), Order.club_id == self.id) \
+            .all()
+
+
 class ClubGallery(db.Model):
     __tablename__ = 'club_gallery'
     id = db.Column(db.Integer, primary_key=True)

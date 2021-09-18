@@ -443,10 +443,12 @@ def create_roles():
 
     # users
     with app.app_context():
+        club_superadmin_role = Role(name='club_superadmin', level=0)
         club_admin_role = Role(name='club_admin', level=100)
         club_manager_role = Role(name='club_manager', level=200)
 
         try:
+            db.session.add(club_superadmin_role)
             db.session.add(club_admin_role)
             db.session.add(club_manager_role)
             db.session.commit()

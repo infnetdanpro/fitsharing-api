@@ -22,6 +22,7 @@ class ClubUser(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'),
                            onupdate=text('CURRENT_TIMESTAMP'))
     club_role = relationship(ClubUserRole, uselist=False)
+    owner_user_id = db.Column(db.Integer, db.ForeignKey('club_user.id'))
 
     def __repr__(self):
         return f'<ClubUser {self.email}. ID: {self.id}>'

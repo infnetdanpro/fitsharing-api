@@ -1,0 +1,91 @@
+{% extends 'club_admin/base.html' %}
+{% block title %}FitSharing Club CMS - {{ title }}{% endblock %}
+{% block content %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+    {% include 'club_admin/sidebar.html' %}
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'club_admin/navbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    {% if user_for_verification.complete %}
+                        <div class="col-lg-6 mb-4">
+                            <div class="card bg-success text-white shadow">
+                                <div class="card-body">
+                                    Данный пользователей верифицирован
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Верификация пользователей</h1>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <form action="{{ url_for('club_admin.verification_user') }}?user_id={{ user_id }}" method="post">
+                                {{ user_form.csrf_token }}
+                                <div class="form-group">
+                                    <label for="firstname">Имя (должно совпадать с предоставленным документом)</label>
+                                    <input type="text" name="firstname" class="form-control" id="firstname" placeholder="Имя пользователя" required value="{{ user_form.firstname }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastname">Фамилия (должна совпадать с предоставленным документом)</label>
+                                    <input type="text" name="lastname" class="form-control" id="lastname" placeholder="Фамилия пользователя" required value="{{ user_form.lastname }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" name="email" class="form-control" id="email" placeholder="Email пользователя" required value="{{ user_form.email }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Телефон (+7 111 111-11-11)</label>
+                                    <input type="text" name="phone" class="form-control" id="phone" placeholder="Телефон" required value="{{ user_form.phone }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="date_of_birth">Дата рождения (ГГГГ-ММ-ДД)  (должна совпадать с предоставленным документом)</label>
+                                    <input type="text" name="date_of_birth" class="form-control" id="date_of_birth" placeholder="Дата рождения" required value="{{ user_form.date_of_birth }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-success">Подтвердить</button>
+                            </form>
+                        </div>
+
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'club_admin/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+
+    {% include 'club_admin/logout_modal.html' %}
+{% endblock %}

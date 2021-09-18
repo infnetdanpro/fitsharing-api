@@ -8,6 +8,7 @@ from flask_login import login_user, current_user, logout_user
 from werkzeug.utils import redirect
 
 from application.club_admin.forms import RegisterForm, AuthForm
+from application.club_admin.utils import non_auth
 from application.database import db
 # TODO: move this into main lib
 from application.api.funcs.password import verify_password, hash_password
@@ -19,16 +20,6 @@ from functools import wraps
 logger = logging.getLogger(__name__)
 
 
-def non_auth(f):
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        if current_user.is_authenticated:
-            return redirect(url_for('club_admin.main_view'), code=302)
-        return f(*args, **kwds)
-
-    return wrapper
-
-
 def index_view():
     return redirect(url_for('club_admin.main_view' if current_user.is_authenticated else 'club_admin.login_view'), code=302)
 
@@ -37,7 +28,7 @@ def index_view():
 def login_view():
     context = {
         'login_url': url_for('club_admin.login_view'),
-        'club_register_url': url_for('club_admin.register_club_view'),
+        'club_register_url': url_for('club_admin.register_superadmin_view'),
     }
     form_wtf = AuthForm(request.form)
     form = dict(request.form)
@@ -64,10 +55,10 @@ def login_view():
 
 
 @non_auth
-def register_club_view():
+def register_superadmin_view():
     context = {
         'login_url': url_for('club_admin.login_view'),
-        'club_register_url': url_for('club_admin.register_club_view'),
+        'club_register_url': url_for('club_admin.register_superadmin_view'),
     }
     form_wtf = RegisterForm(request.form)
     form = dict(request.form)
@@ -122,7 +113,7 @@ def register_club_view():
             db.session.add(club_user)
             db.session.flush()
 
-            club_admin_role = db.session.query(Role).filter(Role.name == 'club_admin').one()
+            club_admin_role = db.session.query(Role).filter(Role.name == 'club_superadmin').one()
             club_user_role = ClubUserRole()
             club_user_role.role_id = club_admin_role.id
             club_user_role.user_id = club_user.id
