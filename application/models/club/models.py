@@ -1,5 +1,4 @@
 import datetime
-import enum
 
 from sqlalchemy import text
 from sqlalchemy.orm import relationship
@@ -24,6 +23,7 @@ class Club(db.Model):
     images = relationship('ClubGallery')
     work_hours = relationship('ClubWorkSchedule')
     owner_club_user_id = db.Column(db.Integer, db.ForeignKey('club_user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
 
     def get_price_per_minute(self):
         price = db.session.execute("""
@@ -71,6 +71,7 @@ class ClubWorkSchedule(db.Model):
     day = db.Column(db.Enum(Days), nullable=False)
     work_hours = db.Column(db.String, nullable=False)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
 
     def __str__(self):
         return str(self.day.value)
@@ -86,6 +87,7 @@ class Service(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     about = db.Column(db.String(1024), unique=False, nullable=False)
     enabled = db.Column(db.Boolean, unique=False, nullable=True, default=True, server_default='true')
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
 
 
 class ServiceType(StrEnum):
@@ -104,3 +106,4 @@ class ClubService(db.Model):
     enabled = db.Column(db.Boolean, nullable=True, default=True, server_default='true')
     price = db.Column(db.Float, nullable=True)
     service_type = db.Column(db.Enum(ServiceType), nullable=True, default='additional', server_default='additional')
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
