@@ -28,6 +28,8 @@ from application.models.role.models import *
 from application.models.notifications.models import *
 
 
+from flask_admin import Admin
+
 class FixedApi(Api):
     def error_router(self, original_handler, e):
         if not isinstance(e, PyJWTError) and not isinstance(e, JWTExtendedException) and self._has_fr_route():
@@ -43,7 +45,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_pyfile('config.py')
 
-    # cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+    admin = Admin(app, name='admin', template_mode='bootstrap3')
 
     # API
     api = FixedApi(app)

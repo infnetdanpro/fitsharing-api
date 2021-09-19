@@ -106,7 +106,7 @@ class OrderEndpoint(MethodResource, Resource):
         if uncompleted_orders:
             abort(409, message='You have non-completed orders!')
 
-        club_service_ids: List[int] = args.get('club_service_ids')
+        # club_service_ids: List[int] = args.get('club_service_ids')
         # We don't need this check because ParserArgument already do this
         # for club_service_id in club_service_ids:
         #     if not isinstance(club_service_id, int):
@@ -114,16 +114,16 @@ class OrderEndpoint(MethodResource, Resource):
 
         price = 0
 
-        if club_service_ids:
-            choice_club_services = db.session\
-                .query(ClubService)\
-                .filter(ClubService.id.in_(club_service_ids), ClubService.enabled.is_(True))\
-                .all()
-
-            for club_service in choice_club_services:
-                if club_service.service_type == 'main':
-                    continue
-                price += club_service.price
+        # if club_service_ids:
+        #     choice_club_services = db.session\
+        #         .query(ClubService)\
+        #         .filter(ClubService.id.in_(club_service_ids), ClubService.enabled.is_(True))\
+        #         .all()
+        #
+        #     for club_service in choice_club_services:
+        #         if club_service.service_type == 'main':
+        #             continue
+        #         price += club_service.price
 
         new_order = Order(
             user_id=current_user.id,
@@ -136,12 +136,12 @@ class OrderEndpoint(MethodResource, Resource):
         )
         try:
             db.session.add(new_order)
-            db.session.flush()
+            # db.session.flush()
 
-            if club_service_ids:
-                for club_service in choice_club_services:
-                    new_ordered_service = OrderService(order=new_order, club_service=club_service)
-                    db.session.add(new_ordered_service)
+            # if club_service_ids:
+            #     for club_service in choice_club_services:
+            #         new_ordered_service = OrderService(order=new_order, club_service=club_service)
+            #         db.session.add(new_ordered_service)
 
             db.session.commit()
             return new_order
