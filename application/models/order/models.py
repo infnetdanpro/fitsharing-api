@@ -21,8 +21,9 @@ class Order(db.Model):
                            server_default=text('CURRENT_TIMESTAMP'), onupdate=text('CURRENT_TIMESTAMP'))
     comment = db.Column(db.String(256), nullable=True)
     price = db.Column(db.Float)     # calculated
-    time_to_come = db.Column(db.Integer, default=0, nullable=False)
-    confirmation_code = db.Column(db.String(32), nullable=False)
+    is_qr = db.Column(db.Boolean, default=False, nullable=False, server_default=text('false'))
+    time_to_come = db.Column(db.Integer, default=0, nullable=True)
+    confirmation_code = db.Column(db.String(32), nullable=True)
 
     # arrived client and confirm by club
     client_arrived_at = db.Column(db.DateTime)

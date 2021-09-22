@@ -40,6 +40,7 @@ class GetOrderRequest(Schema):
 
 class PostOrderRequest(Schema):
     club_id = fields.Int(required=True)
+    is_qr = fields.Bool()
     comment = fields.Str()
     club_service_ids = fields.List(fields.Int())
 

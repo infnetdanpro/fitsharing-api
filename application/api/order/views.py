@@ -12,8 +12,7 @@ from application.api.order.docs import (
     PostOrderRequest,
     ListOrderResponse
 )
-from application.models.order.models import Order, OrderService
-from application.models.club.models import ClubService
+from application.models.order.models import Order
 from application.database import db
 from application.api.funcs.confirmation_code import generate_code
 from application.models.user.models import User
@@ -47,8 +46,8 @@ def get_unique_confirmation_code():
             return code
 
 
-# For single order
 class OrderEndpoint(MethodResource, Resource):
+    """For single order"""
     get_args = reqparse.RequestParser()
     get_args.add_argument('order_id', type=int, required=True)
 
@@ -124,16 +123,26 @@ class OrderEndpoint(MethodResource, Resource):
         #         if club_service.service_type == 'main':
         #             continue
         #         price += club_service.price
-
-        new_order = Order(
-            user_id=current_user.id,
-            created_at=datetime.utcnow(),
-            club_id=args['club_id'],
-            comment=args.get('comment'),
-            price=price,
-            time_to_come=60,    # todo: get from settings
-            confirmation_code=get_unique_confirmation_code(),
-        )
+        if args.get('is_qr'):
+            dt_now = datetime.utcnow()
+            new_order = Order(
+                user_id=current_user.id,
+                club_id=args['club_id'],
+                price=price,
+                is_qr=True,
+                client_arrived_at=dt_now,
+                club_confirmed_client_arrived_at=dt_now     # autoconfirm for is_qr
+            )
+        else:
+            new_order = Order(
+                user_id=current_user.id,
+                created_at=datetime.utcnow(),
+                club_id=args['club_id'],
+                comment=args.get('comment'),
+                price=price,
+                time_to_come=60,    # todo: get from settings
+                confirmation_code=get_unique_confirmation_code(),
+            )
         try:
             db.session.add(new_order)
             # db.session.flush()
