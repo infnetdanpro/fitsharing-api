@@ -22,66 +22,6 @@
       <span>Верификация клиентов</span>
     </a>
   </li>
-<!--  <li class="nav-item">-->
-<!--    <a class="nav-link" href="#">-->
-<!--      <i class="fas fa-fw fa-tachometer-alt"></i>-->
-<!--      <span>История посещений</span>-->
-<!--    </a>-->
-<!--  </li>-->
-
-  {% if current_user.club_role.role.name == 'club_admin2' %}
-  <!-- Divider -->
-  <hr class="sidebar-divider">
-
-  <!-- Heading -->
-  <div class="sidebar-heading">
-    Управление клубами
-  </div>
-
-  <!-- Nav Item - Pages Collapse Menu -->
-  <li class="nav-item">
-    <a class="nav-link" href="{# {{ url_for('club_admin.add_club_view') }} #}">
-      <i class="fas fa-fw fa-table"></i>
-      <span>Добавить клуб</span></a>
-  </li>
-<!--  <li class="nav-item">-->
-<!--    <a class="nav-link" href="#">-->
-<!--      <i class="fas fa-fw fa-table"></i>-->
-<!--      <span>Список клубов</span></a>-->
-<!--  </li>-->
-  <li class="nav-item">
-    <a class="nav-link" href="#">
-      <i class="fas fa-fw fa-table"></i>
-      <span>Статистика</span></a>
-  </li>
-  {% endif %}
-  <!-- Divider -->
-  <hr class="sidebar-divider">
-
-<!--  &lt;!&ndash; Heading &ndash;&gt;-->
-<!--  <div class="sidebar-heading">-->
-<!--    Поддержка и документация-->
-<!--  </div>-->
-
-<!--  &lt;!&ndash; Nav Item - Pages Collapse Menu &ndash;&gt;-->
-<!--&lt;!&ndash;  <li class="nav-item">&ndash;&gt;-->
-<!--&lt;!&ndash;    <a class="nav-link" href="#">&ndash;&gt;-->
-<!--&lt;!&ndash;      <i class="fas fa-fw fa-table"></i>&ndash;&gt;-->
-<!--&lt;!&ndash;      <span>Счета</span></a>&ndash;&gt;-->
-<!--&lt;!&ndash;  </li>&ndash;&gt;-->
-<!--  <li class="nav-item">-->
-<!--    <a class="nav-link" href="#">-->
-<!--      <i class="fas fa-fw fa-table"></i>-->
-<!--      <span>Задать вопрос</span></a>-->
-<!--  </li>-->
-<!--  <li class="nav-item">-->
-<!--    <a class="nav-link" href="#">-->
-<!--      <i class="fas fa-fw fa-table"></i>-->
-<!--      <span>Тех.поддержка</span></a>-->
-<!--  </li>-->
-
-  <!-- Divider -->
-  <hr class="sidebar-divider d-none d-md-block">
 
   <!-- Sidebar Toggler (Sidebar) -->
   <div class="text-center d-none d-md-inline">
