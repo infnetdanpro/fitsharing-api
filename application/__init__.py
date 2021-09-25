@@ -26,6 +26,7 @@ from application.models.content.models import *
 from application.models.club_user.models import *
 from application.models.role.models import *
 from application.models.notifications.models import *
+from application.models.payment.models import *
 
 
 from flask_admin import Admin
@@ -60,6 +61,9 @@ def create_app():
 
     from application.club_admin import bp as bp_route
     app.register_blueprint(bp_route, url_prefix='/club-panel')
+
+    from application.payment import bp as pay_route
+    app.register_blueprint(pay_route, url_prefix='/payment')
 
     # JWT
     # jwt = JWT(app, authenticate, identity)  # Auto Creates /auth endpoint
