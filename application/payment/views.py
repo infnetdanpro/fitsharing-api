@@ -3,7 +3,7 @@ import logging
 import uuid
 from uuid import uuid4
 
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, jsonify
 
 from application.database import db
 from application.models.payment.models import Invoice
@@ -29,7 +29,7 @@ def form_view():
         try:
             db.session.add(invoice)
             db.session.commit()
-            return redirect(url_for('payment.invoice_payment_view', invoice_uuid=invoice.invoice_uuid), code=302)
+            return jsonify({'invoice_uuid': invoice.invoice_uuid})
         except Exception as e:
             flash('Ошибка создания платежа, пожалуйста, обратитесь в техподдержку! Код ошибки: #3139PAY')
             logger.exception('Something wrong with adding an invoice: %s', str(e))
