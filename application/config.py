@@ -25,3 +25,4 @@ SENDGRID_SUBJECT = os.environ.get('SENDGRID_FROM_NAME', 'FitSharing Support')
 SENDGRID_FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'dan-pro352@ya.ru')
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
+YOOMONEY_WALLET_ID = os.environ.get('YOOMONEY_WALLET_ID', '4100117196627468')

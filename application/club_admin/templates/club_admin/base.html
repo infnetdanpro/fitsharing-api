@@ -43,6 +43,24 @@
   <!-- Custom scripts for all pages-->
   <script src="/club-panel/static/js/sb-admin-2.js"></script>
 
+
+    <script language="JavaScript">
+      let wallet_radio = $("#yoomoney");
+      let card_radio = $("#bank_card");
+
+      function changeAmount(amount) {
+        $("span.amount").text(amount);
+      }
+
+      wallet_radio.click(function(e) {
+        changeAmount(wallet_radio.data().amount);
+      });
+
+      card_radio.click(function(e) {
+        changeAmount(card_radio.data().amount);
+      });
+
+    </script>
 </body>
 
 </html>

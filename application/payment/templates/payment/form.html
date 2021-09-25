@@ -7,54 +7,68 @@
     <!-- Outer Row -->
     <div class="row justify-content-center">
 
-        <div class="col-xl-10 col-lg-12 col-md-9">
+        <div class="col-xl-6 col-lg-6 col-md-6">
 
             <div class="card o-hidden border-0 shadow-lg my-5">
 
-                <div class="card-body p-0">
+                <div>
                     <!-- Nested Row within Card Body -->
+                    {% if not any_errors %}
                     <div class="row">
-                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
-                        <div class="col-lg-6">
+<!--                        <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>-->
                             <div class="p-5">
                                 <div class="text-center">
-                                    <h1 class="h4 text-gray-900 mb-4">FitSharing Club Management</h1>
+                                    <h3 class="h4 text-gray-900 mb-4">Пополнение баланса FitSharing</h3>
                                 </div>
-                                <form class="user" action="{{ login_url }}" method="POST">
-                                    {{ form_wtf.csrf_token }}
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">Назначение платежа</th>
+                                        <th scope="col">Сумма</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>Пополнение баланса пользователя <b>{{ user_email }}</b></td>
+                                        <td><b><span class="amount">{{ yoomoney_amount }}</span> руб.</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Итого к списанию:</td>
+                                        <td><span>{{ amount }} руб.</span></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <form class="user" action="https://yoomoney.ru/quickpay/confirm.xml" method="POST">
+                                    <input type="hidden" name="receiver" value="{{ wallet_id }}">
+                                    <input type="hidden" name="label" value="{{ invoice_uuid }}">
+                                    <input type="hidden" name="quickpay-form" value="small">
+                                    <input type="hidden" name="targets" value="Пополнение баланса FitSharing ({{ user_email }})">
+                                    <input type="hidden" name="sum" value="{{ amount }}" data-type="number">
+                                    <input type="hidden" name="need-fio" value="false">
+                                    <input type="hidden" name="need-email" value="false">
+                                    <input type="hidden" name="need-phone" value="false">
+                                    <input type="hidden" name="need-address" value="false">
                                     <div class="form-group">
-                                        <input type="email" name="email" class="form-control form-control-user"
-                                               id="exampleInputEmail" aria-describedby="emailHelp"
-                                               placeholder="Введите Email-адрес..." required>
-                                    </div>
-                                    <div class="form-group">
-                                        <input type="password" name="password" class="form-control form-control-user"
-                                               id="exampleInputPassword" placeholder="Пароль" required>
+                                        <div class="custom-control custom-checkbox small">
+                                            <input type="radio" name="paymentType" class="custom-control-input" id="yoomoney" value="PC" data-amount="{{ yoomoney_amount }}" checked>
+                                            <label class="custom-control-label" for="yoomoney">ЮMoney - комиссия 0.5%</label>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <div class="custom-control custom-checkbox small">
-                                            <input type="checkbox" name="remember" class="custom-control-input" id="customCheck">
-                                            <label class="custom-control-label" for="customCheck">Запомнить</label>
+                                            <input type="radio" name="paymentType" class="custom-control-input" id="bank_card" value="AC" data-amount="{{ yoomoney_card_amount }}">
+                                            <label class="custom-control-label" for="bank_card">Банковской картой - комиссия 2%</label>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary btn-user btn-block">Войти</button>
+                                    <button type="submit" class="btn btn-success btn-user btn-block"><b>Оплатить</b></button>
                                 </form>
-                                <hr>
-                                <div class="text-center">
-                                    <!--                                        <a class="small" href="#">Забыли пароль?</a>-->
-                                </div>
-                                <div class="text-center">
-                                    <a class="small" href="{{ club_register_url }}">Регистрация</a>
-                                </div>
                             </div>
-                        </div>
+
                     </div>
+                    {% endif %}
                 </div>
             </div>
-
         </div>
-
     </div>
-
 </div>
 {% endblock %}
