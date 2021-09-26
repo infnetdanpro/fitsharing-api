@@ -1,14 +1,14 @@
 import datetime
 import logging
 import uuid
-from distutils.command.config import config
+from hashlib import sha1
 from uuid import uuid4
 
-from flask import render_template, request, flash, jsonify, url_for
+from flask import render_template, request, flash, jsonify
 
 from application import config
 from application.database import db
-from application.models.payment.models import Invoice
+from application.models.payment.models import Invoice, InvoiceCallback
 from application.models.user.models import User
 from application.payment.forms import Payment
 
@@ -16,6 +16,7 @@ logger = logging.getLogger('payment')
 
 
 def form_view():
+    """Generate and return invoice uuid"""
     context = {}
     title = 'Страница пополнения баланса'
     context.update(title=title)
@@ -34,6 +35,7 @@ def form_view():
             db.session.commit()
             return jsonify({'invoice_uuid': invoice.invoice_uuid})
         except Exception as e:
+            db.session.rollback()
             flash('Ошибка создания платежа, пожалуйста, обратитесь в техподдержку! Код ошибки: #3139PAY')
             logger.exception('Something wrong with adding an invoice: %s', str(e))
     for error in form_wtf.errors:
@@ -49,6 +51,13 @@ def invoice_payment_view(invoice_uuid: uuid4):
     title: str = 'Страница пополнения баланса'
     context.update(title=title)
     any_errors: bool = False
+    params = request.args
+
+    if params.get('invalid') is True:
+        any_errors = True
+        context.update(any_errors=any_errors)
+        flash('Что-то пошло не так, пожалуйста, обратитесь в техподдержку, код ошибки: #7716PAY')
+        return render_template('payment/form.html', **context)
 
     try:
         uuid.UUID(invoice_uuid)
@@ -58,6 +67,7 @@ def invoice_payment_view(invoice_uuid: uuid4):
 
     user_invoice = db.session.query(Invoice)\
         .filter(Invoice.invoice_uuid == invoice_uuid)\
+        .filter(Invoice.paid.is_(False))\
         .filter(Invoice.expired_at >= datetime.datetime.utcnow())\
         .first()
 
@@ -96,3 +106,35 @@ def invoice_payment_view(invoice_uuid: uuid4):
         # context.update(success_url=url_for('payment.invoice_payment_view', invoice_uuid=invoice_uuid) + '?success=True')
     return render_template('payment/form.html', **context)
 
+
+def callback_invoice_view():
+    """Validate UUID4 invoice and form"""
+    form = request.form
+
+    # validate sha-1
+    params = [str(v) for _, v in form.items()]
+    params_string = '&'.join(params)
+    is_valid = sha1(params_string.encode('utf-8')).hexdigest() == form['sha1_hash']
+
+    user_invoice = db.session.query(Invoice) \
+        .filter(Invoice.invoice_uuid == form['label']) \
+        .filter(Invoice.expired_at >= datetime.datetime.utcnow()) \
+        .one()
+
+    invoice_callback = InvoiceCallback(
+        invoice_id=user_invoice.id,
+        sha1_hash=form['sha1_hash'],
+        amount=form['amount'],
+        raw_data=form,
+        is_valid=is_valid
+    )
+
+    try:
+        user_invoice.paid = is_valid
+        db.session.add(invoice_callback)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.exception('Something wrong with saving callback: %s', str(e))
+
+    return jsonify(is_valid), is_valid

@@ -11,3 +11,4 @@ bp = Blueprint(
 
 bp.add_url_rule('/', view_func=form_view, methods=['POST'])
 bp.add_url_rule('/<invoice_uuid>', view_func=invoice_payment_view, methods=['GET'])
+bp.add_url_rule('/callback', view_func=callback_invoice_view, methods=['POST'])
