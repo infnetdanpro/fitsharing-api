@@ -9,7 +9,7 @@ from flask import render_template, request, flash, jsonify
 from application import config
 from application.database import db
 from application.models.payment.models import Invoice, InvoiceCallback
-from application.models.user.models import User
+from application.models.user.models import User, UserBalance
 from application.payment.forms import Payment
 
 logger = logging.getLogger('payment')
@@ -129,12 +129,19 @@ def callback_invoice_view():
         is_valid=is_valid
     )
 
+    result = False
+
     try:
         user_invoice.paid = is_valid
         db.session.add(invoice_callback)
         db.session.commit()
+        result = True
     except Exception as e:
         db.session.rollback()
         logger.exception('Something wrong with saving callback: %s', str(e))
+
+    if result:
+        # Updating user balance
+        UserBalance.update(user_id=user_invoice.user_id, amount=invoice_callback.amount)
 
     return jsonify(is_valid), is_valid

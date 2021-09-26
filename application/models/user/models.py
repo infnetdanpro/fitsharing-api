@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from sqlalchemy import text
@@ -5,6 +6,8 @@ from sqlalchemy.orm import relationship
 
 from application.database import db
 
+
+logger = logging.getLogger('user_models')
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -23,6 +26,7 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'),
                            onupdate=text('CURRENT_TIMESTAMP'))
     verified = relationship('VerifiedUsersByClub', back_populates='user_verify')
+    balance = relationship('UserBalance')
 
     def __repr__(self):
         return f'<User {self.username}. ID: {self.id}>'
@@ -53,4 +57,49 @@ class ForgotPassword(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     reset_code = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow(), server_default=text('CURRENT_TIMESTAMP'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
+
+
+class UserBalance(db.Model):
+    __tablename__ = 'user_balance'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    amount = db.Column(db.Integer, default=0, server_default=text('0'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'), onupdate=datetime.utcnow)
+
+    @classmethod
+    def update(cls, user_id: int, amount: int) -> int:
+        if amount <= 0:
+            return
+
+        user_balance = cls.get_or_create(user_id=user_id)
+
+        try:
+            user_balance.amount += amount
+            db.session.commit()
+        except Exception as e:
+            logger.exception(
+                'Promblem with update user balance: user_id=%s, amount=%s. Text error: %s',
+                user_id,
+                amount,
+                str(e)
+            )
+            db.session.rollback()
+
+        return user_balance.amount
+
+    @classmethod
+    def get_or_create(cls, user_id: int):
+        balance_obj = db.session.query(cls).filter(cls.user_id == user_id).first()
+
+        if not balance_obj:
+            balance_obj = cls(user_id=user_id, amount=0)
+            try:
+                db.session.add(balance_obj)
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+
+        return balance_obj

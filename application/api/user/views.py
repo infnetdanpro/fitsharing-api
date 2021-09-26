@@ -1,3 +1,4 @@
+import logging
 from functools import lru_cache
 
 from flask_apispec import MethodResource, doc, use_kwargs, marshal_with as marshal_with_swagger
@@ -13,8 +14,11 @@ from application.api.user.docs import (
     UpdateUserRequest,
     DeleteUserResponse
 )
-from application.models.user.models import User
+from application.models.user.models import User, UserBalance
 from application.api.funcs.password import hash_password
+
+
+logger = logging.getLogger('user_views')
 
 
 @lru_cache()
@@ -70,14 +74,18 @@ class UserEndpoint(MethodResource, Resource):
         user.email = email_validator_cached(user.email)
         user.password = hash_password(user.password)
 
+
         try:
             db.session.add(user)
+            db.session.flush()
+            user_balance = UserBalance(user_id=user.id, amount=0)
+            db.session.add(user_balance)
             db.session.commit()
         except IntegrityError:
             abort(409, message='User already exists with this email/username')
             db.session.rollback()
         except Exception as e:
-            print(e)
+            logger.exception('Something wrong with register new user: %s', e)
             abort(400, message='Something wrong with register new user. Please, try again later')
             db.session.rollback()
 
@@ -103,6 +111,8 @@ class UserEndpoint(MethodResource, Resource):
                 setattr(user, field, value)
             db.session.commit()
         except Exception as e:
+            logger.exception('Problem with update user information: %s', str(e))
+            abort(400, message='Problem with update user information')
             db.session.rollback()
 
         return user
@@ -121,6 +131,8 @@ class UserEndpoint(MethodResource, Resource):
             user.enabled = False
             db.session.commit()
         except Exception as e:
+            logger.exception('Problem with delete user: %s', str(e))
+            abort(400, message='Problem with delete user')
             db.session.rollback()
 
         return user

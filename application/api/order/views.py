@@ -15,7 +15,7 @@ from application.api.order.docs import (
 from application.models.order.models import Order
 from application.database import db
 from application.api.funcs.confirmation_code import generate_code
-from application.models.user.models import User
+from application.models.user.models import User, UserBalance
 
 single_order_response = {
     'id': fields.Integer,
@@ -197,7 +197,18 @@ class OrderEndpoint(MethodResource, Resource):
             price_per_minute = order.club.get_price_per_minute()
             total_price = (order.client_completed_at - order.client_arrived_at).seconds // 60 * price_per_minute
             order.price = total_price
-            db.session.commit()
+
+            result = False
+            try:
+                result = True
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                abort(400, message='Problem with finish order!')
+
+            if result:
+                UserBalance.update(user_id=order.user_id, amount=-order.price)
+
             return order
 
     @doc(description='Cancel order', tags=['Order'])
