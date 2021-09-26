@@ -100,6 +100,36 @@
 
                         </div>
 
+                        {% if club_qr %}
+                        <script>
+                            function CallPrint(strid) {
+                              var prtContent = document.getElementById(strid);
+                              var WinPrint = window.open('','','left=50,top=50,width=800,height=640,toolbar=0,scrollbars=1,status=0');
+                              WinPrint.document.write('');
+                              WinPrint.document.write(prtContent.innerHTML);
+                              WinPrint.document.write('');
+                              WinPrint.document.close();
+                              WinPrint.focus();
+                              WinPrint.print();
+                              WinPrint.close();
+                              prtContent.innerHTML=strOldOne;
+                            }
+                        </script>
+                        <div class="col-lg-4">
+                            <div class="card shadow mb-4 text-center">
+                                <div class="card-header py-3">Распечатайте данный QR-код и разместите на видном месте</div>
+                                <div class="card-body">
+                                    <div id="print-content">
+                                        <h2>FitSharing - сканировать тут!</h2>
+                                        <img src="data:image/png;base64,{{ club_qr }}" alt="QR-код клуба">
+                                    </div>
+                                    <a onClick="javascript:CallPrint('print-content');" title="Распечатать" style="cursor: pointer; text-decoration: underline; color: #0400ff;">
+                                        <i class="fas fa-print"></i> Распечатать QR-код
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
                 </div>

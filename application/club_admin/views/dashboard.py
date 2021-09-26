@@ -3,6 +3,7 @@ from flask_login import current_user
 from sqlalchemy import or_
 
 from application import Club, VerifiedUsersByClub
+from application.api.tools import get_qrcode
 from application.club_admin.forms import VerificationUserForm
 from application.models.club_user.models import ClubUserAssociation
 from application.database import db
@@ -37,8 +38,11 @@ def club_view():
         .join(Club) \
         .filter(Club.enabled.is_(True)) \
         .all()
+
     context.update(title=f'Посетители в: {clubs[0].club.name}')
     context.update(club_associations=clubs)
+    context.update(club_qr=get_qrcode(content=clubs[0].id))
+
     return render_template('club_admin/cards_one.html', **context)
 
 
