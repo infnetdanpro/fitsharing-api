@@ -8,4 +8,4 @@ class Payment(FlaskForm):
         csrf = False
 
     user_id = IntegerField('User ID', validators=[DataRequired()])
-    amount = IntegerField('Amount of payment', validators=[NumberRange(min=100, max=15000)])
+    amount = IntegerField('Amount of payment', validators=[NumberRange(min=1, max=15000)])
