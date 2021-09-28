@@ -65,7 +65,7 @@ class UserBalance(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
-    amount = db.Column(db.Integer, default=0, server_default=text('0'), nullable=False)
+    amount = db.Column(db.Float, default=0, server_default=text('0'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'), onupdate=datetime.utcnow)
 
@@ -79,9 +79,6 @@ class UserBalance(db.Model):
         try:
             user_balance.amount += amount
             db.session.commit()
-            print('-----------')
-            print(user_balance.amount)
-            print('-----------')
         except Exception as e:
             logger.exception(
                 'Promblem with update user balance: user_id=%s, amount=%s. Text error: %s',
