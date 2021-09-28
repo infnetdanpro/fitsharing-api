@@ -112,8 +112,19 @@ def callback_invoice_view():
     form = request.form
 
     # validate sha-1
-    params = [str(v) for _, v in form.items() if v]
-    params_string = '&'.join(params)
+    keys = ['notification_type', 'operation_id', 'amount', 'currency', 'datetime', 'sender', 'codepro', 'notification_secret', 'label']
+
+    string_params = []
+    for key in keys:
+        if key == 'notification_secret':
+            string_params.append(config.YOOMONEY_SECRET)
+            continue
+
+        if form.get(key):
+            string_params.append(form[key])
+
+
+    params_string = '&'.join(string_params)
     print('Params string: ', params_string)
     print('Params string hex: ', sha1(params_string.encode('utf-8')).hexdigest())
     print('ORIGIN Params string: ', form['sha1_hash'])
