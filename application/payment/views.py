@@ -128,11 +128,7 @@ def callback_invoice_view():
             string_params.append(form[key])
 
     params_string = '&'.join(string_params)
-    print('Params string: ', params_string)
-    print('Params string hex: ', sha1(params_string.encode('utf-8')).hexdigest())
-    print('ORIGIN Params string: ', form['sha1_hash'])
     is_valid = sha1(params_string.encode('utf-8')).hexdigest() == form['sha1_hash']
-    print('is_valid', is_valid)
 
     user_invoice = db.session.query(Invoice) \
         .filter(Invoice.invoice_uuid == form['label']) \
