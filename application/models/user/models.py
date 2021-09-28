@@ -79,6 +79,9 @@ class UserBalance(db.Model):
         try:
             user_balance.amount += amount
             db.session.commit()
+            print('-----------')
+            print(user_balance.amount)
+            print('-----------')
         except Exception as e:
             logger.exception(
                 'Promblem with update user balance: user_id=%s, amount=%s. Text error: %s',

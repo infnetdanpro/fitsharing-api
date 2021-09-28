@@ -111,10 +111,17 @@ def callback_invoice_view():
     """Validate UUID4 invoice and form"""
     form = request.form
 
+    print('1-'*30)
+    print(form)
+    print('1-'*30)
+
     # validate sha-1
     params = [str(v) for _, v in form.items()]
     params_string = '&'.join(params)
+    print('Params string: ', params_string)
+    print('ORIGIN Params string: ', form['sha1_hash'])
     is_valid = sha1(params_string.encode('utf-8')).hexdigest() == form['sha1_hash']
+    print('is_valid', is_valid)
 
     user_invoice = db.session.query(Invoice) \
         .filter(Invoice.invoice_uuid == form['label']) \
@@ -136,12 +143,15 @@ def callback_invoice_view():
         db.session.add(invoice_callback)
         db.session.commit()
         result = True
+        print('SAVED invoice_callback')
     except Exception as e:
         db.session.rollback()
         logger.exception('Something wrong with saving callback: %s', str(e))
 
     if result:
         # Updating user balance
-        UserBalance.update(user_id=user_invoice.user_id, amount=invoice_callback.amount)
+        print('USER BALANCE!')
+        new_amount = UserBalance.update(user_id=user_invoice.user_id, amount=invoice_callback.amount)
+        print('new_amount', new_amount)
 
     return jsonify(is_valid), is_valid
