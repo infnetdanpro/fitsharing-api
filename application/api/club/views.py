@@ -211,7 +211,7 @@ class ClubCheckEndpoint(MethodResource, Resource):
 
     @doc(description='Check club by uuid4', tags=['Clubs'])
     @marshal_with_swagger(ClubCheckResponse)
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         args: dict = self.get_parser.parse_args()
 
