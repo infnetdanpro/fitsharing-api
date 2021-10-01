@@ -87,9 +87,10 @@ def create_app():
     from application.api.user.views import UserEndpoint
     api.add_resource(UserEndpoint, '/api/users')
 
-    from application.api.club.views import ClubEndpoint, ClubServiceEndpoint, ClubsEndpoint
+    from application.api.club.views import ClubEndpoint, ClubServiceEndpoint, ClubsEndpoint, ClubCheckEndpoint
     api.add_resource(ClubEndpoint, '/api/clubs')
     api.add_resource(ClubsEndpoint, '/api/clubs/all')
+    api.add_resource(ClubCheckEndpoint, '/api/clubs/check')
     api.add_resource(ClubServiceEndpoint, '/api/clubs/services')
 
     from application.api.order.views import OrderEndpoint, OrderHistoryEndpoint
@@ -134,5 +135,6 @@ def create_app():
     docs.register(UserEndpoint)
     docs.register(OrderEndpoint)
     docs.register(OrderHistoryEndpoint)
+    docs.register(ClubCheckEndpoint)
 
     return app

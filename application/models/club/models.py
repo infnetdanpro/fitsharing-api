@@ -1,6 +1,8 @@
 import datetime
+import uuid
 
 from sqlalchemy import text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from application.database import db
 from geoalchemy2 import Geometry
@@ -24,6 +26,7 @@ class Club(db.Model):
     work_hours = relationship('ClubWorkSchedule')
     owner_club_user_id = db.Column(db.Integer, db.ForeignKey('club_user.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
+    club_uuid = db.Column(UUID(as_uuid=True), default=uuid.uuid4, nullable=False, server_default=text('uuid_generate_v4()'))
 
     def get_price_per_minute(self):
         price = db.session.execute("""
@@ -49,7 +52,6 @@ class ClubGallery(db.Model):
     sequence = db.Column(db.Integer, default=0)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, server_default=text('CURRENT_TIMESTAMP'))
-
 
 
 class Days(StrEnum):

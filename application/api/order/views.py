@@ -95,7 +95,10 @@ class OrderEndpoint(MethodResource, Resource):
     def post(self, *args, **kwargs):
         # create order
         args: dict = self.post_args.parse_args()
-        current_user = db.session.query(User).filter(User.email == get_jwt_identity()).one()
+        current_user: User = db.session.query(User).filter(User.email == get_jwt_identity()).one()
+
+        if current_user.balance.amount < 100:
+            abort(400, message='You don\'t have enough money on your balance!')
 
         # Check already exists orders
         uncompleted_orders = db.session.query(Order).filter(

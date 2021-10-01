@@ -1,10 +1,13 @@
 import textwrap
+import uuid
 from datetime import datetime, timedelta
 from typing import List
 
+from flask_apispec import MethodResource, doc, marshal_with as marshal_with_swagger
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
 
+from application.api.club.docs import ClubCheckResponse
 from application.database import db
 from application.models.club.models import Club, ClubService, days_order
 
@@ -51,14 +54,15 @@ club_services_response = {
 
 class ClubEndpoint(Resource):
     get_parser = reqparse.RequestParser()
-    get_parser.add_argument('id', type=int, required=True)
+    get_parser.add_argument('club_id', type=int, required=True)
 
+    @doc(description='Get club info', tags=['Clubs'])
     @marshal_with(single_club_response)
     @jwt_required()
     def get(self):
         args: dict = self.get_parser.parse_args()
         club: Club = db.session.query(Club)\
-            .filter(Club.enabled == True, Club.id == args['id'])\
+            .filter(Club.enabled.is_(True), Club.id == args['club_id'])\
             .first()
 
         if not club:
@@ -105,6 +109,7 @@ class ClubServiceEndpoint(Resource):
     get_parser = reqparse.RequestParser()
     get_parser.add_argument('club_id', type=int, required=True)
 
+    @doc(description='List club services for single club', tags=['Clubs'])
     @jwt_required()
     def get(self):
         args: dict = self.get_parser.parse_args()
@@ -130,7 +135,6 @@ class ClubServiceEndpoint(Resource):
         return resp
 
 
-
 coordinates_response = {
     'type': fields.String,
     'coordinates': fields.List(fields.Float)
@@ -150,6 +154,7 @@ list_clubs_response = {
     'records': fields.List(fields.Nested(club_response)),
 }
 
+
 class ClubsEndpoint(Resource):
     get_parser = reqparse.RequestParser()
     get_parser.add_argument('lng', type=float, required=False)
@@ -157,6 +162,7 @@ class ClubsEndpoint(Resource):
     get_parser.add_argument('limit', type=int, required=False, default=10)
     get_parser.add_argument('offset', type=int, required=False, default=0)
 
+    @doc(description='List clubs for map', tags=['Clubs'])
     @marshal_with(list_clubs_response)
     @jwt_required()
     def get(self):
@@ -196,5 +202,42 @@ class ClubsEndpoint(Resource):
             """
             clubs_results = db.session.execute(query, args).fetchall()
 
-
         return {'records': clubs_results}, 200
+
+
+class ClubCheckEndpoint(MethodResource, Resource):
+    get_parser = reqparse.RequestParser()
+    get_parser.add_argument('club_uuid', type=str, required=True)
+
+    @doc(description='Check club by uuid4', tags=['Clubs'])
+    @marshal_with_swagger(ClubCheckResponse)
+    # @jwt_required()
+    def get(self):
+        args: dict = self.get_parser.parse_args()
+
+        get_data = args['club_uuid'].split('_')
+        print(get_data)
+        app_name, club_uuid = get_data
+
+        if app_name.lower() != 'fitsharing':
+            abort(403)
+
+        try:
+            uuid.UUID(club_uuid)
+        except ValueError:
+            abort(422, message='Невалидный идентификатор клуба')
+
+        club = db.session.query(Club)\
+            .filter(Club.club_uuid == club_uuid, Club.enabled.is_(True))\
+            .first()
+
+        if not club:
+            abort(404, message='Клуб не найден или отключен в данный момент')
+
+        price_per_minute = club.get_price_per_minute()
+
+        if price_per_minute <= 0:
+            abort(402, message='В клубе не выставлена стоимость посещения, '
+                               'вы не можете посетить данный клуб. Обратитесь к администратору')
+
+        return {'club_id': club.id, 'club_name': club.name, 'price_per_minute': price_per_minute}
