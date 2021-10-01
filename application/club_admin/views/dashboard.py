@@ -33,15 +33,15 @@ def club_view():
     context = {}
 
     # getting related clubs by current_user
-    clubs = db.session.query(ClubUserAssociation)\
+    cas = db.session.query(ClubUserAssociation)\
         .filter(ClubUserAssociation.club_user_id == current_user.id, ClubUserAssociation.club_id == args['club_id'])\
         .join(Club) \
         .filter(Club.enabled.is_(True)) \
         .all()
 
-    context.update(title=f'Посетители в: {clubs[0].club.name}')
-    context.update(club_associations=clubs)
-    context.update(club_qr=get_qrcode(content=clubs[0].id))
+    context.update(title=f'Посетители в: {cas[0].club.name}')
+    context.update(club_associations=cas)
+    context.update(club_qr=get_qrcode(content=f'fitsharing_{cas[0].club.club_uuid}'))
 
     return render_template('club_admin/cards_one.html', **context)
 
