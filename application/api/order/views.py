@@ -230,7 +230,6 @@ class OrderEndpoint(MethodResource, Resource):
                 abort(400, message='Проблема с завершением заказа')
 
             if result:
-                print('MINUS!', order.price)
                 UserBalance.update(user_id=order.user_id, amount=-order.price)
 
             return order
