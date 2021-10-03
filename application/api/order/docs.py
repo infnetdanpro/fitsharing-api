@@ -26,6 +26,7 @@ class OrderResponse(Schema):
 
     complete = fields.Bool()
     minutes = fields.Int()
+    max_minutes = fields.Int()
 
 
 class UpdateOrderRequest(Schema):

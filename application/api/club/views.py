@@ -3,11 +3,11 @@ import uuid
 from datetime import datetime, timedelta
 from typing import List
 
-from flask_apispec import MethodResource, doc, marshal_with as marshal_with_swagger
+from flask_apispec import MethodResource, doc, marshal_with as marshal_with_swagger, use_kwargs
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
 
-from application.api.club.docs import ClubCheckResponse
+from application.api.club.docs import ClubCheckResponse, ClubRequest
 from application.database import db
 from application.models.club.models import Club, ClubService, days_order
 
@@ -54,7 +54,8 @@ club_services_response = {
 
 class ClubEndpoint(Resource):
     get_parser = reqparse.RequestParser()
-    get_parser.add_argument('club_id', type=int, required=True)
+    get_parser.add_argument('club_id', type=int, required=False)
+    get_parser.add_argument('id', type=int, required=True)
 
     @doc(description='Get club info', tags=['Clubs'])
     @marshal_with(single_club_response)
@@ -62,7 +63,7 @@ class ClubEndpoint(Resource):
     def get(self):
         args: dict = self.get_parser.parse_args()
         club: Club = db.session.query(Club)\
-            .filter(Club.enabled.is_(True), Club.id == args['club_id'])\
+            .filter(Club.enabled.is_(True), Club.id == args['id'])\
             .first()
 
         if not club:
@@ -110,6 +111,7 @@ class ClubServiceEndpoint(Resource):
     get_parser.add_argument('club_id', type=int, required=True)
 
     @doc(description='List club services for single club', tags=['Clubs'])
+    @use_kwargs(ClubRequest)
     @jwt_required()
     def get(self):
         args: dict = self.get_parser.parse_args()
@@ -215,12 +217,15 @@ class ClubCheckEndpoint(MethodResource, Resource):
     def get(self):
         args: dict = self.get_parser.parse_args()
 
-        get_data = args['club_uuid'].split('_')
-        print(get_data)
-        app_name, club_uuid = get_data
+        app_name, club_uuid = None, None
+        try:
+            get_data = args['club_uuid'].split('_')
+            app_name, club_uuid = get_data
 
-        if app_name.lower() != 'fitsharing':
-            abort(403)
+            if app_name.lower() != 'fitsharing':
+                abort(403)
+        except:
+            abort(400, message='Код нераспознан')
 
         try:
             uuid.UUID(club_uuid)

@@ -16,6 +16,7 @@ from application.models.order.models import Order
 from application.database import db
 from application.api.funcs.confirmation_code import generate_code
 from application.models.user.models import User, UserBalance
+from application.models.club.models import Club
 
 single_order_response = {
     'id': fields.Integer,
@@ -54,6 +55,7 @@ class OrderEndpoint(MethodResource, Resource):
     post_args = reqparse.RequestParser()
     # post_args.add_argument('user_id', type=int, required=False)
     post_args.add_argument('club_id', type=int, required=True)
+    post_args.add_argument('is_qr', type=bool, required=False)
     post_args.add_argument('comment', type=str, required=False)
     post_args.add_argument('club_service_ids', type=int, action='append')
 
@@ -63,6 +65,7 @@ class OrderEndpoint(MethodResource, Resource):
 
     put_args = reqparse.RequestParser()
     put_args.add_argument('order_id', type=int, required=True)
+    put_args.add_argument('is_qr', type=bool, required=False)
     put_args.add_argument('confirm_arrive', type=bool, required=False)
     put_args.add_argument('end_arrive', type=bool, required=False)
 
@@ -81,32 +84,36 @@ class OrderEndpoint(MethodResource, Resource):
         if not order:
             abort(404, message=f'Order with id: {args["order_id"]} is not found')
 
+
         if order.client_arrived_at:
             setattr(order, 'minutes', (datetime.utcnow() - order.client_arrived_at).seconds // 60)
+        elif order.is_qr:
+            setattr(order, 'minutes', (datetime.utcnow() - order.created_at).seconds // 60)
         else:
             setattr(order, 'minutes', 0)
-
         return order
 
     @doc(description='Create order', tags=['Order'])
     @use_kwargs(PostOrderRequest)
-    @marshal_with_swagger(OrderResponse)
+    # @marshal_with_swagger(OrderResponse)
     @jwt_required()
     def post(self, *args, **kwargs):
         # create order
         args: dict = self.post_args.parse_args()
         current_user: User = db.session.query(User).filter(User.email == get_jwt_identity()).one()
 
-        if current_user.balance.amount < 100:
-            abort(400, message='You don\'t have enough money on your balance!')
+        if not current_user.balance or current_user.balance.amount < 100:
+            UserBalance.update(user_id=current_user.id, amount=0)
+            abort(400, message='У вас недостаточно денег для посещения! (необходимо минимум 100 рублей на счету)')
 
         # Check already exists orders
         uncompleted_orders = db.session.query(Order).filter(
             Order.user_id == current_user.id,
             Order.complete.is_(False)
         ).all()
+
         if uncompleted_orders:
-            abort(409, message='You have non-completed orders!')
+            abort(409, message='У вас есть незавершенные посещения')
 
         # club_service_ids: List[int] = args.get('club_service_ids')
         # We don't need this check because ParserArgument already do this
@@ -126,6 +133,13 @@ class OrderEndpoint(MethodResource, Resource):
         #         if club_service.service_type == 'main':
         #             continue
         #         price += club_service.price
+
+        club: Club = db.session.query(Club).filter(Club.id == args['club_id'], Club.enabled.is_(True)).first()
+        if not club:
+            abort(400, message='Извините, данный клуб отключен!')
+
+        max_minutes = current_user.balance.amount // int(club.get_price_per_minute())
+
         if args.get('is_qr'):
             dt_now = datetime.utcnow()
             new_order = Order(
@@ -134,7 +148,8 @@ class OrderEndpoint(MethodResource, Resource):
                 price=price,
                 is_qr=True,
                 client_arrived_at=dt_now,
-                club_confirmed_client_arrived_at=dt_now     # autoconfirm for is_qr
+                club_confirmed_client_arrived_at=dt_now,     # autoconfirm for is_qr
+                max_minutes=max_minutes
             )
         else:
             new_order = Order(
@@ -145,27 +160,30 @@ class OrderEndpoint(MethodResource, Resource):
                 price=price,
                 time_to_come=60,    # todo: get from settings
                 confirmation_code=get_unique_confirmation_code(),
+                max_minutes=max_minutes
             )
         try:
             db.session.add(new_order)
-            # db.session.flush()
-
-            # if club_service_ids:
-            #     for club_service in choice_club_services:
-            #         new_ordered_service = OrderService(order=new_order, club_service=club_service)
-            #         db.session.add(new_ordered_service)
-
             db.session.commit()
-            return new_order
+            resp = {
+                'id': new_order.id,
+                'club_name': club.name,
+                'club_id': new_order.club_id,
+                'created_at': new_order.created_at,
+                'price_per_minute': club.get_price_per_minute(),
+                'text_created_at': new_order.created_at.strftime('%d.%m.%Y %H:%M'),
+                'max_minutes': new_order.max_minutes
+            }
+            return resp
         except Exception as e:
             db.session.rollback()
-            abort(400, message=f'Error creating order: {e}')
+            abort(400, message=f'Ошибка на сервере, код ошибки: #ORDER81812')
 
     @doc(description='Update order (confirm or end)', tags=['Order'])
-    @use_kwargs(UpdateOrderRequest)
+    # @use_kwargs(UpdateOrderRequest)
     @marshal_with_swagger(OrderResponse)
     @jwt_required()
-    def put(self, *args, **kwargs):
+    def patch(self, *args, **kwargs):
         args: dict = self.put_args.parse_args()
         current_user = db.session.query(User).filter(User.email == get_jwt_identity()).one()
 
@@ -180,10 +198,42 @@ class OrderEndpoint(MethodResource, Resource):
             .first()
 
         if not order:
-            abort(404, message='Order is not active or deleted, check order information')
+            abort(404, message='Посещение завершено или отменено, обратитесь в поддержку')
 
-        if not any([args['confirm_arrive'], args['end_arrive']]):
-            abort(400, message='end_arrive or confirm_arrive is required')
+        # if not any([args['confirm_arrive'], args['end_arrive']]):
+        #     abort(400, message='Нехватает информации для получения заказа')
+
+        if args['is_qr']:
+            order.complete = True
+            order.client_completed_at = datetime.utcnow()
+            price_per_minute = order.club.get_price_per_minute()
+
+            minutes = (order.client_completed_at - order.created_at).seconds // 60
+            remain = (order.client_completed_at - order.created_at).seconds % 60
+
+            if minutes < 1:
+                minutes = 1
+
+            if minutes > 1 and remain > 30:
+                # округляем в большую сторону :)
+                minutes += 1
+
+            order.price = minutes * price_per_minute
+
+            result = False
+
+            try:
+                result = True
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                abort(400, message='Проблема с завершением заказа')
+
+            if result:
+                print('MINUS!', order.price)
+                UserBalance.update(user_id=order.user_id, amount=-order.price)
+
+            return order
 
         if args['confirm_arrive']:
             # TODO: add here some action for trigger in CMS/Web for Clubs!

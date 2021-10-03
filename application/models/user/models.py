@@ -26,7 +26,7 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.now, server_default=text('CURRENT_TIMESTAMP'),
                            onupdate=text('CURRENT_TIMESTAMP'))
     verified = relationship('VerifiedUsersByClub', back_populates='user_verify')
-    balance = relationship('UserBalance')
+    balance = relationship('UserBalance', uselist=False)
 
     def __repr__(self):
         return f'<User {self.username}. ID: {self.id}>'
@@ -71,9 +71,6 @@ class UserBalance(db.Model):
 
     @classmethod
     def update(cls, user_id: int, amount: int) -> int:
-        if amount <= 0:
-            return
-
         user_balance = cls.get_or_create(user_id=user_id)
 
         try:

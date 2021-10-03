@@ -40,6 +40,9 @@ class Order(db.Model):
     # When user/club is confirmed arrive
     complete = db.Column(db.Boolean, default=False, server_default=text('false'))
 
+    # Calculated max time in minutes for user
+    max_minutes = db.Column(db.Integer)
+
 
 class OrderService(db.Model):
     __tablename__ = 'order_service'
