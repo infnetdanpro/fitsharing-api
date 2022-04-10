@@ -103,7 +103,38 @@ class ClubEndpoint(Resource):
 
         current_datetime = datetime.utcnow() + timedelta(seconds=180*60) # Moscow +3 hours
         setattr(club, 'open', start_time <= current_datetime <= end_time)
-        return club
+
+        club_services: List[ClubService] = db.session.query(ClubService) \
+            .filter(ClubService.club_id == club.id) \
+            .all()
+
+        services = []
+
+        if club_services:
+            for cs in club_services:
+                services.append({
+                    'id': cs.service.id,
+                    'name': cs.service.name,
+                    'about': cs.service.about,
+                    'price': cs.price,
+                    'service_type': cs.service_type
+                })
+
+        club_info = {
+            'id': club.id,
+            'name': club.name,
+            'address': club.address,
+            'phone': club.phone,
+            'lat': club.lat,
+            'lng': club.lng,
+            'about': club.about,
+            'images': club.images,
+            'work_hours': work_hours,
+            'open': club.open,
+            'services': services
+        }
+
+        return club_info
 
 
 class ClubServiceEndpoint(Resource):
