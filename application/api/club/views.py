@@ -75,9 +75,13 @@ class ClubEndpoint(Resource):
         # Sort work days
         work_hours_indexes_order = {}
         for work_hour in club.work_hours:
-            work_hours_indexes_order[days_order.index(work_hour.day)] = work_hour
+            work_hours_indexes_order[days_order.index(work_hour.day)] = {
+                'id': work_hour.id,
+                'name': work_hour.name,
+                'work_hours': work_hour.work_hours
+            }
 
-        index_order = sorted(work_hours_indexes_order, key=lambda x: x)
+        index_order = sorted(work_hours_indexes_order, key=lambda x: x['id'])
 
         work_hours = []
         for index in index_order:
