@@ -96,9 +96,9 @@ class ClubEndpoint(Resource):
             day = work_hours[current_datetime.weekday()]
         except IndexError:
             # If current week day not exists in work schedule
-            return club
+            day = {}
 
-        open_time, close_time = day['work_hours'].split('-')
+        open_time, close_time = day['work_hours'].split('-') if day.get('work_hours') else '00:00', '23:59'
         open_hour, open_minute = open_time.split(':')
         close_hour, close_minute = close_time.split(':')
 
