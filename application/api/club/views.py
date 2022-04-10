@@ -77,7 +77,7 @@ class ClubEndpoint(Resource):
         for work_hour in club.work_hours:
             work_hours_indexes_order[days_order.index(work_hour.day)] = {
                 'id': work_hour.id,
-                'name': work_hour.name,
+                'day': work_hour.day,
                 'work_hours': work_hour.work_hours
             }
 
@@ -98,7 +98,7 @@ class ClubEndpoint(Resource):
             # If current week day not exists in work schedule
             return club
 
-        open_time, close_time = day.work_hours.split('-')
+        open_time, close_time = day['work_hours'].split('-')
         open_hour, open_minute = open_time.split(':')
         close_hour, close_minute = close_time.split(':')
 
