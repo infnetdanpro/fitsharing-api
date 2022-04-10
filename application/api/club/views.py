@@ -87,8 +87,6 @@ class ClubEndpoint(Resource):
         for index in index_order:
             work_hours.append(work_hours_indexes_order[index])
 
-        setattr(club, 'work_hours', work_hours)
-
         # Detect open/not open status by week/work hours
         current_datetime = datetime.utcnow() + timedelta(seconds=180*60)    # Moscow +3 hours
 
