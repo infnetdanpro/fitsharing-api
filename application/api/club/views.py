@@ -120,6 +120,22 @@ class ClubEndpoint(Resource):
                     'service_type': cs.service_type
                 })
 
+        images = []
+
+        # name = db.Column(db.String)
+        # image = db.Column(db.String)
+        # sequence = db.Column(db.Integer, default=0)
+        # club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
+        # created_at
+        for image in club.images:
+            images.append({
+                'name': image.name,
+                'image': image.image,
+                'sequence': image.sequence
+            })
+
+        images = sorted(images, key=lambda i: i['sequence'])
+
         club_info = {
             'id': club.id,
             'name': club.name,
@@ -128,7 +144,7 @@ class ClubEndpoint(Resource):
             'lat': club.lat,
             'lng': club.lng,
             'about': club.about,
-            'images': club.images,
+            'images': images,
             'work_hours': work_hours,
             'open': club.open,
             'services': services
