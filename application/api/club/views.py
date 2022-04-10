@@ -57,8 +57,8 @@ class ClubEndpoint(Resource):
     get_parser.add_argument('club_id', type=int, required=False)
     get_parser.add_argument('id', type=int, required=True)
 
-    @doc(description='Get club info', tags=['Clubs'])
-    @marshal_with(single_club_response)
+    # @doc(description='Get club info', tags=['Clubs'])
+    # @marshal_with(single_club_response)
     @jwt_required()
     def get(self):
         args: dict = self.get_parser.parse_args()
